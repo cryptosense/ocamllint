@@ -2,9 +2,7 @@ open Ast_mapper
 open Parsetree
 
 let report_warning ~loc msg =
-  let yellow = "\x1b[33m" in
-  let reset = "\x1b[0m" in
-  let msg = Printf.sprintf "%s(ocamllint) %s%s\n" yellow msg reset in
+  let msg = Printf.sprintf "(ocamllint) %s\n" msg in
   let err = Location.error ~loc msg in
   Location.report_error Format.std_formatter err
 
