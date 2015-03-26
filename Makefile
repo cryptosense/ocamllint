@@ -1,7 +1,7 @@
 include $(shell ocamlc -where)/Makefile.config
 
 PACKAGE=ocamllint
-OBJ=ppx_lint.cma ppx_lint.cmxa
+OBJ=ppx_lint.cma ppx_lint.cmxa ppx_lint.native
 INSTALL=META $(addprefix _build/, $(OBJ))
 
 .PHONY: all install uninstall clean
@@ -9,7 +9,7 @@ INSTALL=META $(addprefix _build/, $(OBJ))
 all:
 	ocamlbuild -use-ocamlfind $(OBJ) ppx_lint.native
 
-install:
+install: uninstall
 	ocamlfind install $(PACKAGE) $(INSTALL)
 
 uninstall:

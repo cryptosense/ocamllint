@@ -8,5 +8,5 @@ package "ppx_lint" (
     version = "0.0+dev"
     description = "Run ocamllint through a ppx"
     requires = "ocamllint"
-    ppx = "./ppx_lint"
+    ppx = "./ppx_lint.native"
 )
