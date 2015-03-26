@@ -14,6 +14,10 @@ let handle expr =
   | [%expr String.concat [%e? s] [ [%e? l] ] ] -> report_warning ~loc "Useless concat"
   | [%expr if [%e? _] then true else false ] -> report_warning ~loc "Useless if"
   | [%expr if [%e? _] then () else [%e? _]] -> report_warning ~loc "Backwards if"
+  | [%expr List.hd ] -> report_warning ~loc "Use of partial function List.hd"
+  | [%expr List.tl ] -> report_warning ~loc "Use of partial function List.tl"
+  | [%expr String.sub [%e? s] 0 [%e? n] ] -> report_warning ~loc "Use Str.first_chars"
+  | [%expr List.length [%e? _] > 0 ] -> report_warning ~loc "Use <> []"
   | _ -> ()
 
 let lint_mapper argv =
