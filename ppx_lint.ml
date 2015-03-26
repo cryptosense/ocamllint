@@ -18,6 +18,12 @@ let handle expr =
   | [%expr List.tl ] -> report_warning ~loc "Use of partial function List.tl"
   | [%expr String.sub [%e? s] 0 [%e? n] ] -> report_warning ~loc "Use Str.first_chars"
   | [%expr List.length [%e? _] > 0 ] -> report_warning ~loc "Use <> []"
+  | [%expr [%e? _] = true]
+  | [%expr [%e? _] = false]
+  | [%expr [%e? _] == true]
+  | [%expr [%e? _] == false]
+  | [%expr [%e? _] <> true]
+  | [%expr [%e? _] != false] -> report_warning ~loc "Useless comparison to boolean"
   | _ -> ()
 
 let lint_mapper argv =
