@@ -1,9 +1,19 @@
 open Ast_mapper
 open Parsetree
 
+let report_warning ~loc msg =
+  let yellow = "\x1b[33m" in
+  let reset = "\x1b[0m" in
+  let msg = Printf.sprintf "%s(ocamllint) %s%s\n" yellow msg reset in
+  let err = Location.error ~loc msg in
+  Location.report_error Format.std_formatter err
+
 let handle expr =
+  let loc = expr.pexp_loc in
   match expr with
-  | [%expr String.concat [%e? s] [ [%e? l] ] ] -> print_endline "warning2"
+  | [%expr String.concat [%e? s] [ [%e? l] ] ] -> report_warning ~loc "Useless concat"
+  | [%expr if [%e? _] then true else false ] -> report_warning ~loc "Useless if"
+  | [%expr if [%e? _] then () else [%e? _]] -> report_warning ~loc "Backwards if"
   | _ -> ()
 
 let lint_mapper argv =
