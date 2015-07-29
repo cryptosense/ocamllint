@@ -27,6 +27,8 @@ let handle expr =
   | [%expr [%e? _] == false]
   | [%expr [%e? _] <> true]
   | [%expr [%e? _] != false] -> report_warning ~loc "Useless comparison to boolean"
+  | [%expr [%e? _] |> [%e? { pexp_desc = Pexp_fun _} ]]
+  | [%expr [%e? { pexp_desc = Pexp_fun _} ] @@ [%e? _]] -> report_warning ~loc "Use let/in"
   | _ -> ()
 
 let lint_mapper argv =
