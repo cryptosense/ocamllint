@@ -31,11 +31,23 @@ let handle expr =
   | [%expr [%e? { pexp_desc = Pexp_fun _} ] @@ [%e? _]] -> report_warning ~loc "Use let/in"
   | _ -> ()
 
+let is_uppercase s =
+  s = String.uppercase s
+
+let handle_module_type_declaration mtd =
+  let loc = mtd.pmtd_loc in
+  let name = mtd.pmtd_name.txt in
+  if not (is_uppercase name) then
+    report_warning ~loc ("Module name not uppercase : " ^ name)
+
 let lint_mapper argv =
   { default_mapper with
-    expr = fun mapper expr ->
+    expr = (fun mapper expr ->
       handle expr;
-      default_mapper.expr mapper expr
+      default_mapper.expr mapper expr);
+    module_type_declaration = (fun mapper mtd ->
+      handle_module_type_declaration mtd;
+      default_mapper.module_type_declaration mapper mtd);
   }
 
 let () = register "lint" lint_mapper
