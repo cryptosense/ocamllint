@@ -1,4 +1,5 @@
 open Ast_mapper
+open Asttypes
 open Parsetree
 
 let report_warning ~loc msg =
@@ -34,11 +35,27 @@ let handle expr =
 let is_uppercase s =
   s = String.uppercase s
 
+let is_lowercase s =
+  s = String.lowercase s
+
+let is_snake_case name =
+  let all_but_first = Str.string_after name 1 in
+  let words = Str.split (Str.regexp "_") all_but_first in
+  List.for_all (fun word ->
+    is_lowercase word || is_uppercase word
+  ) words
+
+let handle_module_binding mb =
+  let loc = mb.pmb_loc in
+  let name = mb.pmb_name.txt in
+  if not (is_snake_case name) then
+    report_warning ~loc ("Module name not in snake case: " ^ name)
+
 let handle_module_type_declaration mtd =
   let loc = mtd.pmtd_loc in
   let name = mtd.pmtd_name.txt in
   if not (is_uppercase name) then
-    report_warning ~loc ("Module name not uppercase : " ^ name)
+    report_warning ~loc ("Module type name not uppercase : " ^ name)
 
 let lint_mapper argv =
   { default_mapper with
@@ -48,6 +65,9 @@ let lint_mapper argv =
     module_type_declaration = (fun mapper mtd ->
       handle_module_type_declaration mtd;
       default_mapper.module_type_declaration mapper mtd);
+    module_binding = (fun mapper module_binding ->
+      handle_module_binding module_binding;
+      default_mapper.module_binding mapper module_binding);
   }
 
 let () = register "lint" lint_mapper

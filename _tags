@@ -1,1 +1,1 @@
-<ppx_lint.*>: package(compiler-libs.common), package(ppx_tools.metaquot)
+<ppx_lint.*>: package(compiler-libs.common), package(ppx_tools.metaquot), package(str)
