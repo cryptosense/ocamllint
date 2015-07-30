@@ -30,6 +30,9 @@ let handle expr =
   | [%expr String.sub [%e? s] [%e? n] (String.length [%e? s'] - [%e? n']) ]
     when expr_eq s s' && expr_eq n n'
     -> report_warning ~loc "Use Str.string_after"
+  | [%expr String.sub [%e? s] (String.length [%e? s'] - [%e? n]) [%e? n'] ]
+    when expr_eq s s' && expr_eq n n'
+    -> report_warning ~loc "Use Str.last_chars"
   | [%expr List.length [%e? _] > 0 ] -> report_warning ~loc "Use <> []"
   | [%expr List.length [%e? _] = 0 ] -> report_warning ~loc "Use = []"
   | [%expr [%e? _] = true]
