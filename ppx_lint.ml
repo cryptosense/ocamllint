@@ -14,6 +14,23 @@ let expr_eq e1 e2 =
   | Pexp_ident i1, Pexp_ident i2 -> i1.txt = i2.txt
   | _ -> false
 
+let is_uppercase s =
+  s = String.uppercase s
+
+let is_lowercase s =
+  s = String.lowercase s
+
+let is_snake_case name =
+  let all_but_first = Str.string_after name 1 in
+  let words = Str.split (Str.regexp "_") all_but_first in
+  List.for_all (fun word ->
+    is_lowercase word || is_uppercase word
+  ) words
+
+let check_module_name ~loc name =
+  if not (is_snake_case name) then
+    report_warning ~loc ("Module name not in snake case: " ^ name)
+
 let handle expr =
   let loc = expr.pexp_loc in
   match expr with
@@ -43,26 +60,13 @@ let handle expr =
   | [%expr [%e? _] != false] -> report_warning ~loc "Useless comparison to boolean"
   | [%expr [%e? _] |> [%e? { pexp_desc = Pexp_fun _} ]]
   | [%expr [%e? { pexp_desc = Pexp_fun _} ] @@ [%e? _]] -> report_warning ~loc "Use let/in"
+  | { pexp_desc = Pexp_letmodule ({ txt }, _, _) } -> check_module_name ~loc txt
   | _ -> ()
-
-let is_uppercase s =
-  s = String.uppercase s
-
-let is_lowercase s =
-  s = String.lowercase s
-
-let is_snake_case name =
-  let all_but_first = Str.string_after name 1 in
-  let words = Str.split (Str.regexp "_") all_but_first in
-  List.for_all (fun word ->
-    is_lowercase word || is_uppercase word
-  ) words
 
 let handle_module_binding mb =
   let loc = mb.pmb_loc in
   let name = mb.pmb_name.txt in
-  if not (is_snake_case name) then
-    report_warning ~loc ("Module name not in snake case: " ^ name)
+  check_module_name ~loc name
 
 let handle_module_type_declaration mtd =
   let loc = mtd.pmtd_loc in
