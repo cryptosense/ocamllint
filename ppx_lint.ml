@@ -2,10 +2,20 @@ open Ast_mapper
 open Asttypes
 open Parsetree
 
+let with_def_use = false
+
 let report_warning ~loc msg =
   let msg = Printf.sprintf "(ocamllint) %s\n" msg in
   let err = Location.error ~loc msg in
   Location.report_error Format.std_formatter err
+
+let report_def ~loc name =
+  Printf.printf "DEF: %s " name;
+  Location.print_loc Format.std_formatter loc;
+  Printf.printf "\n"
+
+let report_use name =
+  Printf.printf "USE: %s\n" name
 
 (** Syntactic equality *)
 let expr_eq e1 e2 =
@@ -31,8 +41,20 @@ let check_module_name ~loc name =
   if not (is_snake_case name) then
     report_warning ~loc ("Module name not in snake case: " ^ name)
 
+let track_def vd =
+  if with_def_use then
+    let loc = vd.pval_loc in
+    report_def ~loc vd.pval_name.txt
+
+let track_use expr =
+  if with_def_use then
+    match expr.pexp_desc with
+    | Pexp_ident lid -> report_use (Longident.last lid.txt)
+    | _ -> ()
+
 let handle expr =
   let loc = expr.pexp_loc in
+  track_use expr;
   match expr with
   | [%expr String.concat [%e? s] [ [%e? l] ] ] -> report_warning ~loc "String.concat on singleton"
   | [%expr List.map [%e? _] [ [%e? _] ] ] -> report_warning ~loc "List.map on singleton"
@@ -74,6 +96,11 @@ let handle_module_type_declaration mtd =
   if not (is_uppercase name) then
     report_warning ~loc ("Module type name not uppercase : " ^ name)
 
+let handle_signature_item si =
+  match si.psig_desc with
+  | Psig_value vd -> track_def vd
+  | _ -> ()
+
 let lint_mapper argv =
   { default_mapper with
     expr = (fun mapper expr ->
@@ -85,6 +112,9 @@ let lint_mapper argv =
     module_binding = (fun mapper module_binding ->
       handle_module_binding module_binding;
       default_mapper.module_binding mapper module_binding);
+    signature_item = (fun mapper signature_item ->
+      handle_signature_item signature_item;
+      default_mapper.signature_item mapper signature_item);
   }
 
 let () = register "lint" lint_mapper
