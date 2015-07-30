@@ -7,6 +7,13 @@ let report_warning ~loc msg =
   let err = Location.error ~loc msg in
   Location.report_error Format.std_formatter err
 
+(** Syntactic equality *)
+let expr_eq e1 e2 =
+  match e1.pexp_desc, e2.pexp_desc with
+  | Pexp_constant c1, Pexp_constant c2 -> c1 = c2
+  | Pexp_ident i1, Pexp_ident i2 -> i1.txt = i2.txt
+  | _ -> false
+
 let handle expr =
   let loc = expr.pexp_loc in
   match expr with
@@ -20,6 +27,9 @@ let handle expr =
   | [%expr List.hd ] -> report_warning ~loc "Use of partial function List.hd"
   | [%expr List.tl ] -> report_warning ~loc "Use of partial function List.tl"
   | [%expr String.sub [%e? s] 0 [%e? n] ] -> report_warning ~loc "Use Str.first_chars"
+  | [%expr String.sub [%e? s] [%e? n] (String.length [%e? s'] - [%e? n']) ]
+    when expr_eq s s' && expr_eq n n'
+    -> report_warning ~loc "Use Str.string_after"
   | [%expr List.length [%e? _] > 0 ] -> report_warning ~loc "Use <> []"
   | [%expr List.length [%e? _] = 0 ] -> report_warning ~loc "Use = []"
   | [%expr [%e? _] = true]
