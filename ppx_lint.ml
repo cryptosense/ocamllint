@@ -41,10 +41,9 @@ let check_module_name ~loc name =
   if not (is_snake_case name) then
     report_warning ~loc ("Module name not in snake case: " ^ name)
 
-let track_def vd =
+let track_def ~loc name =
   if with_def_use then
-    let loc = vd.pval_loc in
-    report_def ~loc vd.pval_name.txt
+    report_def ~loc name
 
 let track_use expr =
   if with_def_use then
@@ -98,7 +97,19 @@ let handle_module_type_declaration mtd =
 
 let handle_signature_item si =
   match si.psig_desc with
-  | Psig_value vd -> track_def vd
+  | Psig_value vd -> begin
+      let loc = vd.pval_loc in
+      track_def ~loc vd.pval_name.txt
+    end
+  | _ -> ()
+
+let handle_structure_item si =
+  match si.pstr_desc with
+  | Pstr_value (_, bindings) ->
+      List.iter (function
+        | { pvb_pat = { ppat_desc = Ppat_var name ; ppat_loc = loc } } -> track_def ~loc name.txt
+        | _ -> ()
+      ) bindings
   | _ -> ()
 
 let lint_mapper argv =
@@ -115,6 +126,9 @@ let lint_mapper argv =
     signature_item = (fun mapper signature_item ->
       handle_signature_item signature_item;
       default_mapper.signature_item mapper signature_item);
+    structure_item = (fun mapper structure_item ->
+      handle_structure_item structure_item;
+      default_mapper.structure_item mapper structure_item);
   }
 
 let () = register "lint" lint_mapper
