@@ -82,6 +82,8 @@ let handle expr =
   | [%expr [%e? _] |> [%e? { pexp_desc = Pexp_fun _} ]]
   | [%expr [%e? { pexp_desc = Pexp_fun _} ] @@ [%e? _]] -> report_warning ~loc "Use let/in"
   | { pexp_desc = Pexp_letmodule ({ txt }, _, _) } -> check_module_name ~loc txt
+  | [%expr [%e? e1] := ![%e? e2] + 1] when expr_eq e1 e2 -> report_warning ~loc "Use incr"
+  | [%expr [%e? e1] := ![%e? e2] - 1] when expr_eq e1 e2 -> report_warning ~loc "Use decr"
   | _ -> ()
 
 let handle_module_binding mb =
