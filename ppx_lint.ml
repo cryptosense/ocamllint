@@ -24,6 +24,33 @@ let expr_eq e1 e2 =
   | Pexp_ident i1, Pexp_ident i2 -> i1.txt = i2.txt
   | _ -> false
 
+(** Detect when a pattern correspond to an expression, as in Some x -> x. *)
+let pat_is_exp p e =
+  match p.ppat_desc, e.pexp_desc with
+  | Ppat_var { txt = pat_var }, Pexp_ident { txt = Longident.Lident exp_var } ->
+      pat_var = exp_var
+  | _ -> false
+
+(** Evaluation of this expression is effect-free. *)
+let rec is_pure e =
+  match e.pexp_desc with
+  | Pexp_ident _
+  | Pexp_constant _
+    -> true
+  | Pexp_construct (_, eo)
+  | Pexp_variant (_, eo)
+    -> is_pure_option eo
+  | Pexp_field (e, _)
+    -> is_pure e
+  | Pexp_array es
+  | Pexp_tuple es ->
+      List.for_all is_pure es
+  | _ -> false
+
+and is_pure_option = function
+  | None -> true
+  | Some e -> is_pure e
+
 let is_uppercase s =
   s = String.uppercase s
 
@@ -84,6 +111,11 @@ let handle expr =
   | { pexp_desc = Pexp_letmodule ({ txt }, _, _) } -> check_module_name ~loc txt
   | [%expr [%e? e1] := ![%e? e2] + 1] when expr_eq e1 e2 -> report_warning ~loc "Use incr"
   | [%expr [%e? e1] := ![%e? e2] - 1] when expr_eq e1 e2 -> report_warning ~loc "Use decr"
+  | ( [%expr match [%e? _] with | None -> [%e? def] | Some [%p? p] -> [%e? e]]
+    | [%expr match [%e? _] with | Some [%p? p] -> [%e? e] | None -> [%e? def]]
+    )
+    when is_pure def && pat_is_exp p e ->
+      report_warning ~loc "Use Option.default"
   | _ -> ()
 
 let handle_module_binding mb =
