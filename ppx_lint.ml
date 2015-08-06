@@ -90,6 +90,17 @@ let all_branches_same expr = match expr.pexp_desc with
       end
   | _ -> false
 
+let match_on_const expr = match expr.pexp_desc with
+  | Pexp_match (e, _) ->
+      begin
+        match e.pexp_desc with
+        | Pexp_constant _ -> true
+        | Pexp_construct _ -> true
+        | Pexp_variant _ -> true
+        | _ -> false
+      end
+    | _ -> false
+
 let is_uppercase s =
   s = String.uppercase s
 
@@ -159,6 +170,8 @@ let handle expr =
       report_warning ~loc "Useless if"
   | _ when all_branches_same expr ->
       report_warning ~loc "Useless match"
+  | _ when match_on_const expr ->
+      report_warning ~loc "Match on constant or constructor"
   | _ -> ()
 
 let handle_module_binding mb =
