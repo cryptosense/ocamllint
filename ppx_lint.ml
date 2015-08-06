@@ -17,12 +17,40 @@ let report_def ~loc name =
 let report_use name =
   Printf.printf "USE: %s\n" name
 
+let rec li_eq li1 li2 =
+  let open Longident in
+  match (li1, li2) with
+  | Lident s1, Lident s2 -> s1 = s2
+  | Ldot (i1, s1), Ldot (i2, s2) -> li_eq i1 i2 && s1 = s2
+  | Lapply (lia1, lib1), Lapply (lia2, lib2) ->
+      li_eq lia1 lia2 && li_eq lib1 lib2
+  | _ -> false
+
 (** Syntactic equality *)
-let expr_eq e1 e2 =
+let rec expr_eq e1 e2 =
   match e1.pexp_desc, e2.pexp_desc with
   | Pexp_constant c1, Pexp_constant c2 -> c1 = c2
   | Pexp_ident i1, Pexp_ident i2 -> i1.txt = i2.txt
+  | Pexp_construct ({ txt = li1 }, eo1), Pexp_construct ({ txt = li2 }, eo2) ->
+      li_eq li1 li2 && expr_option_eq eo1 eo2
+  | Pexp_variant (l1, eo1), Pexp_variant (l2, eo2) ->
+      l1 = l2 && expr_option_eq eo1 eo2
+  | Pexp_field (e1, { txt = li1 }), Pexp_field (e2, { txt = li2 }) ->
+      expr_eq e1 e2 && li_eq li1 li2
+  | Pexp_array el1, Pexp_array el2
+  | Pexp_tuple el1, Pexp_tuple el2
+    -> expr_list_eq el1 el2
   | _ -> false
+
+and expr_option_eq eo1 eo2 = match (eo1, eo2) with
+  | Some e1, Some e2 -> expr_eq e1 e2
+  | None, None -> true
+  | _ -> false
+
+and expr_list_eq el1 el2 =
+  try
+    List.for_all2 expr_eq el1 el2
+  with Invalid_argument _ -> false
 
 (** Detect when a pattern correspond to an expression, as in Some x -> x. *)
 let pat_is_exp p e =
@@ -50,6 +78,17 @@ let rec is_pure e =
 and is_pure_option = function
   | None -> true
   | Some e -> is_pure e
+
+let all_branches_same expr = match expr.pexp_desc with
+  | Pexp_match (_, cases) ->
+      begin
+        let exprs = List.map (fun c -> c.pc_rhs) cases in
+        match exprs with
+        | [] -> false
+        | [_] -> false
+        | h::t -> List.for_all (fun e -> expr_eq h e) t
+      end
+  | _ -> false
 
 let is_uppercase s =
   s = String.uppercase s
@@ -116,6 +155,10 @@ let handle expr =
     )
     when is_pure def && pat_is_exp p e ->
       report_warning ~loc "Use Option.default"
+  | [%expr if [%e? _] then [%e? e1] else [%e? e2]] when expr_eq e1 e2 ->
+      report_warning ~loc "Useless if"
+  | _ when all_branches_same expr ->
+      report_warning ~loc "Useless match"
   | _ -> ()
 
 let handle_module_binding mb =
