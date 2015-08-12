@@ -52,6 +52,24 @@ and expr_list_eq el1 el2 =
     List.for_all2 expr_eq el1 el2
   with Invalid_argument _ -> false
 
+(** Allocated litterals *)
+let is_allocated_lit exp =
+  match exp.pexp_desc with
+  | Pexp_constant (Const_string _)
+  | Pexp_tuple _
+  | Pexp_construct (_, Some _)
+  | Pexp_variant (_, Some _)
+  | Pexp_array _
+  | Pexp_record _
+      -> true
+  | _ -> false
+
+let is_phys_eq = function
+  | [%expr (==)]
+  | [%expr (!=)]
+    -> true
+  | _ -> false
+
 (** Detect when a pattern correspond to an expression, as in Some x -> x. *)
 let pat_is_exp p e =
   match p.ppat_desc, e.pexp_desc with
@@ -172,6 +190,9 @@ let handle expr =
       report_warning ~loc "Useless match"
   | _ when match_on_const expr ->
       report_warning ~loc "Match on constant or constructor"
+  | [%expr [%e? f] [%e? e1] [%e? e2]]
+      when is_phys_eq f && (is_allocated_lit e1 || is_allocated_lit e2) ->
+      report_warning ~loc "Use structural comparison"
   | _ -> ()
 
 let handle_module_binding mb =
