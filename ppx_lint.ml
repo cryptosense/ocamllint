@@ -193,6 +193,8 @@ let handle expr =
   | [%expr [%e? f] [%e? e1] [%e? e2]]
       when is_phys_eq f && (is_allocated_lit e1 || is_allocated_lit e2) ->
       report_warning ~loc "Use structural comparison"
+  | [%expr let _ = List.map [%e? _] [%e? _] in [%e? _]] ->
+      report_warning ~loc "Use List.iter"
   | _ -> ()
 
 let handle_module_binding mb =
