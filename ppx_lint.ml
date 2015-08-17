@@ -70,6 +70,11 @@ let is_phys_eq = function
     -> true
   | _ -> false
 
+let rec is_list_lit = function
+  | [%expr []] -> true
+  | [%expr [%e? _]::[%e? t]] -> is_list_lit t
+  | _ -> false
+
 (** Detect when a pattern correspond to an expression, as in Some x -> x. *)
 let pat_is_exp p e =
   match p.ppat_desc, e.pexp_desc with
@@ -195,6 +200,9 @@ let handle expr =
       report_warning ~loc "Use structural comparison"
   | [%expr let _ = List.map [%e? _] [%e? _] in [%e? _]] ->
       report_warning ~loc "Use List.iter"
+  | [%expr [ [%e? _] ] @ [%e? _]] -> report_warning ~loc "Use ::"
+  | [%expr [%e? e1] @ [%e? e2]] when is_list_lit e1 && is_list_lit e2 ->
+      report_warning ~loc "Merge list litterals"
   | _ -> ()
 
 let handle_module_binding mb =
