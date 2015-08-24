@@ -203,6 +203,8 @@ let handle expr =
   | [%expr [ [%e? _] ] @ [%e? _]] -> report_warning ~loc "Use ::"
   | [%expr [%e? e1] @ [%e? e2]] when is_list_lit e1 && is_list_lit e2 ->
       report_warning ~loc "Merge list litterals"
+  | [%expr let [%p? p] = [%e? _] in [%e? e]] when pat_is_exp p e ->
+      report_warning ~loc "Useless let"
   | _ -> ()
 
 let handle_module_binding mb =
