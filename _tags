@@ -1,1 +1,3 @@
+<ast_tools.*>: package(compiler-libs.common)
 <ppx_lint.*>: package(compiler-libs.common), package(ppx_tools.metaquot), package(str)
+<rules.*>: package(compiler-libs.common), package(ppx_tools.metaquot), package(str)
