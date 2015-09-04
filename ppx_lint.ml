@@ -207,6 +207,8 @@ let handle expr =
       report_warning ~loc "Useless let"
   | [%expr Printf.sprintf [%e? _]] ->
       report_warning ~loc "Useless sprintf"
+  | [%expr Printf.sprintf "%s" [%e? _]] ->
+      report_warning ~loc "Useless sprintf %s"
   | _ -> ()
 
 let handle_module_binding mb =
