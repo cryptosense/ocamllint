@@ -205,6 +205,8 @@ let handle expr =
       report_warning ~loc "Merge list litterals"
   | [%expr let [%p? p] = [%e? _] in [%e? e]] when pat_is_exp p e ->
       report_warning ~loc "Useless let"
+  | [%expr Printf.sprintf [%e? _]] ->
+      report_warning ~loc "Useless sprintf"
   | _ -> ()
 
 let handle_module_binding mb =
