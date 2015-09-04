@@ -137,9 +137,11 @@ let is_snake_case name =
     is_lowercase word || is_uppercase word
   ) words
 
-let check_module_name ~loc name =
-  if not (is_snake_case name) then
-    report_warning ~loc ("Module name not in snake case: " ^ name)
+let check_module_name name =
+  if is_snake_case name then
+    None
+  else
+    Some ("Module name not in snake case: " ^ name)
 
 let track_def ~loc name =
   if with_def_use then
@@ -151,70 +153,76 @@ let track_use expr =
     | Pexp_ident lid -> report_use (Longident.last lid.txt)
     | _ -> ()
 
-let handle expr =
-  let loc = expr.pexp_loc in
-  track_use expr;
-  match expr with
-  | [%expr String.concat [%e? s] [ [%e? l] ] ] -> report_warning ~loc "String.concat on singleton"
-  | [%expr List.map [%e? _] [ [%e? _] ] ] -> report_warning ~loc "List.map on singleton"
-  | [%expr List.fold_left [%e? _] [%e? _] [ [%e? _] ] ] -> report_warning ~loc "List.fold_left on singleton"
-  | [%expr List.fold_right [%e? _] [ [%e? _] ] [%e? _] ] -> report_warning ~loc "List.fold_right on singleton"
-  | [%expr if [%e? _] then true else false ] -> report_warning ~loc "Useless if"
-  | [%expr if [%e? _] then () else [%e? _]] -> report_warning ~loc "Backwards if"
-  | [%expr if [%e? _] then [%e? _] else ()] -> report_warning ~loc "Useless else"
-  | [%expr List.hd ] -> report_warning ~loc "Use of partial function List.hd"
-  | [%expr List.tl ] -> report_warning ~loc "Use of partial function List.tl"
-  | [%expr String.sub [%e? s] 0 [%e? n] ] -> report_warning ~loc "Use Str.first_chars"
+let rate_expression = function
+  | [%expr String.concat [%e? s] [ [%e? l] ] ] -> Some "String.concat on singleton"
+  | [%expr List.map [%e? _] [ [%e? _] ] ] -> Some "List.map on singleton"
+  | [%expr List.fold_left [%e? _] [%e? _] [ [%e? _] ] ] -> Some "List.fold_left on singleton"
+  | [%expr List.fold_right [%e? _] [ [%e? _] ] [%e? _] ] -> Some "List.fold_right on singleton"
+  | [%expr if [%e? _] then true else false ] -> Some "Useless if"
+  | [%expr if [%e? _] then () else [%e? _]] -> Some "Backwards if"
+  | [%expr if [%e? _] then [%e? _] else ()] -> Some "Useless else"
+  | [%expr List.hd ] -> Some "Use of partial function List.hd"
+  | [%expr List.tl ] -> Some "Use of partial function List.tl"
+  | [%expr String.sub [%e? s] 0 [%e? n] ] -> Some "Use Str.first_chars"
   | [%expr String.sub [%e? s] [%e? n] (String.length [%e? s'] - [%e? n']) ]
     when expr_eq s s' && expr_eq n n'
-    -> report_warning ~loc "Use Str.string_after"
+    -> Some "Use Str.string_after"
   | [%expr String.sub [%e? s] (String.length [%e? s'] - [%e? n]) [%e? n'] ]
     when expr_eq s s' && expr_eq n n'
-    -> report_warning ~loc "Use Str.last_chars"
-  | [%expr List.length [%e? _] > 0 ] -> report_warning ~loc "Use <> []"
-  | [%expr List.length [%e? _] = 0 ] -> report_warning ~loc "Use = []"
+    -> Some "Use Str.last_chars"
+  | [%expr List.length [%e? _] > 0 ] -> Some "Use <> []"
+  | [%expr List.length [%e? _] = 0 ] -> Some "Use = []"
   | [%expr [%e? _] = true]
   | [%expr [%e? _] = false]
   | [%expr [%e? _] == true]
   | [%expr [%e? _] == false]
   | [%expr [%e? _] <> true]
-  | [%expr [%e? _] != false] -> report_warning ~loc "Useless comparison to boolean"
+  | [%expr [%e? _] != false] -> Some "Useless comparison to boolean"
   | [%expr [%e? _] |> [%e? { pexp_desc = Pexp_fun _} ]]
-  | [%expr [%e? { pexp_desc = Pexp_fun _} ] @@ [%e? _]] -> report_warning ~loc "Use let/in"
-  | { pexp_desc = Pexp_letmodule ({ txt }, _, _) } -> check_module_name ~loc txt
-  | [%expr [%e? e1] := ![%e? e2] + 1] when expr_eq e1 e2 -> report_warning ~loc "Use incr"
-  | [%expr [%e? e1] := ![%e? e2] - 1] when expr_eq e1 e2 -> report_warning ~loc "Use decr"
+  | [%expr [%e? { pexp_desc = Pexp_fun _} ] @@ [%e? _]] -> Some "Use let/in"
+  | { pexp_desc = Pexp_letmodule ({ txt }, _, _) } -> check_module_name txt
+  | [%expr [%e? e1] := ![%e? e2] + 1] when expr_eq e1 e2 -> Some "Use incr"
+  | [%expr [%e? e1] := ![%e? e2] - 1] when expr_eq e1 e2 -> Some "Use decr"
   | ( [%expr match [%e? _] with | None -> [%e? def] | Some [%p? p] -> [%e? e]]
     | [%expr match [%e? _] with | Some [%p? p] -> [%e? e] | None -> [%e? def]]
     )
     when is_pure def && pat_is_exp p e ->
-      report_warning ~loc "Use Option.default"
+      Some "Use Option.default"
   | [%expr if [%e? _] then [%e? e1] else [%e? e2]] when expr_eq e1 e2 ->
-      report_warning ~loc "Useless if"
-  | _ when all_branches_same expr ->
-      report_warning ~loc "Useless match"
-  | _ when match_on_const expr ->
-      report_warning ~loc "Match on constant or constructor"
+      Some "Useless if"
+  | expr when all_branches_same expr ->
+      Some "Useless match"
+  | expr when match_on_const expr ->
+      Some "Match on constant or constructor"
   | [%expr [%e? f] [%e? e1] [%e? e2]]
       when is_phys_eq f && (is_allocated_lit e1 || is_allocated_lit e2) ->
-      report_warning ~loc "Use structural comparison"
+      Some "Use structural comparison"
   | [%expr let _ = List.map [%e? _] [%e? _] in [%e? _]] ->
-      report_warning ~loc "Use List.iter"
-  | [%expr [ [%e? _] ] @ [%e? _]] -> report_warning ~loc "Use ::"
+      Some "Use List.iter"
+  | [%expr [ [%e? _] ] @ [%e? _]] -> Some "Use ::"
   | [%expr [%e? e1] @ [%e? e2]] when is_list_lit e1 && is_list_lit e2 ->
-      report_warning ~loc "Merge list litterals"
+      Some "Merge list litterals"
   | [%expr let [%p? p] = [%e? _] in [%e? e]] when pat_is_exp p e ->
-      report_warning ~loc "Useless let"
+      Some "Useless let"
   | [%expr Printf.sprintf [%e? _]] ->
-      report_warning ~loc "Useless sprintf"
+      Some "Useless sprintf"
   | [%expr Printf.sprintf "%s" [%e? _]] ->
-      report_warning ~loc "Useless sprintf %s"
-  | _ -> ()
+      Some "Useless sprintf %s"
+  | _ -> None
+
+let handle expr =
+  let loc = expr.pexp_loc in
+  track_use expr;
+  match rate_expression expr with
+  | Some warning -> report_warning ~loc warning
+  | None -> ()
 
 let handle_module_binding mb =
   let loc = mb.pmb_loc in
   let name = mb.pmb_name.txt in
-  check_module_name ~loc name
+  match check_module_name name with
+  | Some warning -> report_warning ~loc warning
+  | None -> ()
 
 let handle_module_type_declaration mtd =
   let loc = mtd.pmtd_loc in
