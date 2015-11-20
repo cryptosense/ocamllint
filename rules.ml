@@ -93,7 +93,9 @@ let rate_module_name name =
   else
     Some ("Module name not in snake case: " ^ name)
 
-let rate_expression = function
+let rec rate_expression = function
+  | [%expr [%e? e1] @@ [%e? e2]]
+  | [%expr [%e? e2] |> [%e? e1]] -> rate_expression [%expr [%e e1] [%e e2]]
   | [%expr String.concat [%e? s] [ [%e? l] ] ] -> Some "String.concat on singleton"
   | [%expr List.map [%e? _] [ [%e? _] ] ] -> Some "List.map on singleton"
   | [%expr List.fold_left [%e? _] [%e? _] [ [%e? _] ] ] -> Some "List.fold_left on singleton"
@@ -118,8 +120,7 @@ let rate_expression = function
   | [%expr [%e? _] == false]
   | [%expr [%e? _] <> true]
   | [%expr [%e? _] != false] -> Some "Useless comparison to boolean"
-  | [%expr [%e? _] |> [%e? { pexp_desc = Pexp_fun _} ]]
-  | [%expr [%e? { pexp_desc = Pexp_fun _} ] @@ [%e? _]] -> Some "Use let/in"
+  | [%expr [%e? { pexp_desc = Pexp_fun _} ] [%e? _]] -> Some "Use let/in"
   | { pexp_desc = Pexp_letmodule ({ txt }, _, _) } -> rate_module_name txt
   | [%expr [%e? e1] := ![%e? e2] + 1] when expr_eq e1 e2 -> Some "Use incr"
   | [%expr [%e? e1] := ![%e? e2] - 1] when expr_eq e1 e2 -> Some "Use decr"
