@@ -4,7 +4,7 @@ PACKAGE=ocamllint
 OBJ=ppx_lint.cma ppx_lint.cmxa ppx_lint.native
 INSTALL=META $(addprefix _build/, $(OBJ))
 
-.PHONY: all install uninstall clean
+.PHONY: all install uninstall clean cov cov-html
 
 all:
 	ocamlbuild -use-ocamlfind $(OBJ) ppx_lint.native
@@ -29,3 +29,7 @@ tests.cov:
 cov: tests.cov
 	./tests.cov
 	cd _build ; bisect-ppx-report -summary-only -text /dev/stdout ../bisect000*.out ; cd ..
+
+cov-html: tests.cov
+	./tests.cov
+	cd _build ; bisect-ppx-report -html cov ../bisect000*.out ; cd ..
