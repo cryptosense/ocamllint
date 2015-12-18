@@ -21,15 +21,17 @@ uninstall:
 clean:
 	ocamlbuild -clean
 
-tests.cov:
+tests.cov: tests.ml
 	rm -f tests.native
 	ocamlbuild -use-ocamlfind -package bisect_ppx tests.native
 	mv tests.native $@
 
 cov: tests.cov
-	./tests.cov
+	rm -f ../bisect000*.out
+	./tests.cov -runner sequential
 	cd _build ; bisect-ppx-report -summary-only -text /dev/stdout ../bisect000*.out ; cd ..
 
 cov-html: tests.cov
-	./tests.cov
+	rm -f ../bisect000*.out
+	./tests.cov -runner sequential
 	cd _build ; bisect-ppx-report -html cov ../bisect000*.out ; cd ..

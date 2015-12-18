@@ -36,6 +36,25 @@ let test_style =
   in
   List.map t
     [ [%expr List.map f [2] ], Some "List.map on singleton"
+    ; [%expr List.fold_left f z [2] ], Some "List.fold_left on singleton"
+    ; [%expr List.fold_right f [2] z ], Some "List.fold_right on singleton"
+    ; [%expr String.sub s 0 i ], Some "Use Str.first_chars"
+    ; [%expr String.sub s i (String.length s - i) ], Some "Use Str.string_after"
+    ; [%expr String.sub s (String.length s - i) i ], Some "Use Str.last_chars"
+    ; [%expr List.length l > 0 ], Some "Use <> []"
+    ; [%expr List.length l = 0 ], Some "Use = []"
+    ; [%expr result = true ], Some "Useless comparison to boolean"
+    ; [%expr (fun x -> x + 1) 2], Some "Use let/in"
+    ; [%expr x := !x + 1], Some "Use incr"
+    ; [%expr x := !x - 1], Some "Use decr"
+    ; [%expr let x = 3 in x ], Some "Useless let"
+    ; [%expr [3;14] @ [15;92] ], Some "Merge list litterals"
+    ; [%expr [1] @ [61;80] ], Some "Use ::"
+    ; [%expr match None with Some _ -> 1 | None -> 2 ], Some "Match on constant or constructor"
+    ; [%expr match x with Some _ -> true | None -> true ], Some "Useless match"
+    ; [%expr let _ = List.map f xs in e ], Some "Use List.iter"
+    ; [%expr Printf.sprintf "hello" ], Some "Useless sprintf"
+    ; [%expr Printf.sprintf "%s" "world" ], Some "Useless sprintf %s"
     ]
 
 let suite =
