@@ -150,7 +150,7 @@ let rec rate_expression = function
   | [%expr Printf.sprintf "%s" [%e? _]] ->
       Some "Useless sprintf %s"
   | [%expr List.concat (List.map [%e? _] [%e? _])] ->
-      Some "Useless concat_map"
+      Some "Use concat_map"
   | _ -> None
 
 let rate_module_type_name name =
