@@ -124,11 +124,6 @@ let rec rate_expression = function
   | { pexp_desc = Pexp_letmodule ({ txt }, _, _) } -> rate_module_name txt
   | [%expr [%e? e1] := ![%e? e2] + 1] when expr_eq e1 e2 -> Some "Use incr"
   | [%expr [%e? e1] := ![%e? e2] - 1] when expr_eq e1 e2 -> Some "Use decr"
-  | ( [%expr match [%e? _] with | None -> [%e? def] | Some [%p? p] -> [%e? e]]
-    | [%expr match [%e? _] with | Some [%p? p] -> [%e? e] | None -> [%e? def]]
-    )
-    when is_pure def && pat_is_exp p e ->
-      Some "Use Option.default"
   | [%expr if [%e? _] then [%e? e1] else [%e? e2]] when expr_eq e1 e2 ->
       Some "Useless if"
   | expr when all_branches_same expr ->
@@ -149,8 +144,6 @@ let rec rate_expression = function
       Some "Useless sprintf"
   | [%expr Printf.sprintf "%s" [%e? _]] ->
       Some "Useless sprintf %s"
-  | [%expr List.concat (List.map [%e? _] [%e? _])] ->
-      Some "Use concat_map"
   | _ -> None
 
 let rate_module_type_name name =
