@@ -1,8 +1,15 @@
-opam-version: "1"
-maintainer: "etienne@cryptosense.com"
+opam-version: "1.2"
+maintainer: "Etienne Millon <etienne@cryptosense.com>"
+authors: "Etienne Millon <etienne@cryptosense.com>"
+homepage: "https://github.com/cryptosense/ocamllint"
+bug-reports: "https://github.com/cryptosense/ocamllint/issues"
+license: "BSD-2"
+dev-repo: "https://github.com/cryptosense/ocamllint.git"
 build: [
-[make "all"]
-[make "install"]
+    [make "all"]
+]
+install: [
+    [make "install"]
 ]
 build-test: [make "check"]
 remove: [["ocamlfind" "remove" "ocamllint"]]
@@ -12,4 +19,4 @@ depends: [
     "ppx_tools"
     "ppx_deriving" {test}
 ]
-ocaml-version: [>= "4.02.0"]
+available: [ocaml-version >= "4.02.0"]
