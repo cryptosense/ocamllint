@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/cryptosense/ocamllint.svg)](https://travis-ci.org/cryptosense/ocamllint)
+
 Ocamllint - detect common errors in OCaml code
 ==============================================
 
