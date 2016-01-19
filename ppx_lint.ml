@@ -4,8 +4,8 @@ open Parsetree
 
 let with_def_use = false
 
-let report_warning ~loc msg =
-  let msg = Printf.sprintf "(ocamllint) %s\n" msg in
+let report_warning ~loc warn =
+  let msg = Printf.sprintf "(ocamllint) %s\n" (Warning.to_string warn) in
   let err = Location.error ~loc msg in
   Location.report_error Format.std_formatter err
 
