@@ -22,6 +22,10 @@ let expr_to_string expr =
   Buffer.contents b
 
 let test_style =
+  let warning_opt_to_string = function
+    | None -> None
+    | Some w -> Some (Warning.to_string w)
+  in
   let t (expr, r) =
     let name =
       Printf.sprintf "Rate %s" (expr_to_string expr)
@@ -32,7 +36,7 @@ let test_style =
         ~cmp:[%eq:string option]
         ~printer:[%show:string option]
         r
-        (Rules.rate_expression expr)
+        (warning_opt_to_string (Rules.rate_expression expr))
   in
   List.map t
     [ [%expr List.map f [2] ], Some "List.map on singleton"
@@ -43,18 +47,18 @@ let test_style =
     ; [%expr String.sub s (String.length s - i) i ], Some "Use Str.last_chars"
     ; [%expr List.length l > 0 ], Some "Use <> []"
     ; [%expr List.length l = 0 ], Some "Use = []"
-    ; [%expr result = true ], Some "Useless comparison to boolean"
-    ; [%expr (fun x -> x + 1) 2], Some "Use let/in"
+    ; [%expr result = true ], Some "Comparison to boolean"
+    ; [%expr (fun x -> x + 1) 2], Some "Application of an anonymous function"
     ; [%expr x := !x + 1], Some "Use incr"
     ; [%expr x := !x - 1], Some "Use decr"
-    ; [%expr let x = 3 in x ], Some "Useless let"
-    ; [%expr [3;14] @ [15;92] ], Some "Merge list litterals"
-    ; [%expr [1] @ [61;80] ], Some "Use ::"
+    ; [%expr let x = 3 in x ], Some "Useless let binding"
+    ; [%expr [3;14] @ [15;92] ], Some "List operation on litteral: @"
+    ; [%expr [1] @ [61;80] ], Some "List operation on litteral: ::"
     ; [%expr match None with Some _ -> 1 | None -> 2 ], Some "Match on constant or constructor"
-    ; [%expr match x with Some _ -> true | None -> true ], Some "Useless match"
-    ; [%expr let _ = List.map f xs in e ], Some "Use List.iter"
+    ; [%expr match x with Some _ -> true | None -> true ], Some "All branches of this match are identical"
+    ; [%expr let _ = List.map f xs in e ], Some "Result of List.map discarded, use List.iter instead"
     ; [%expr Printf.sprintf "hello" ], Some "Useless sprintf"
-    ; [%expr Printf.sprintf "%s" "world" ], Some "Useless sprintf %s"
+    ; [%expr Printf.sprintf "%s" "world" ], Some "Useless sprintf"
     ]
 
 let suite =

@@ -88,67 +88,71 @@ let is_snake_case name =
   ) words
 
 let rate_module_name name =
+  let open Warning in
   if is_snake_case name then
     None
   else
-    Some ("Module name not in snake case: " ^ name)
+    Some (Module_name_not_snake_case name)
 
-let rec rate_expression = function
+let rec rate_expression =
+  let open Warning in
+  function
   | [%expr [%e? e1] @@ [%e? e2]]
   | [%expr [%e? e2] |> [%e? e1]] -> rate_expression [%expr [%e e1] [%e e2]]
-  | [%expr String.concat [%e? s] [ [%e? l] ] ] -> Some "String.concat on singleton"
-  | [%expr List.map [%e? _] [ [%e? _] ] ] -> Some "List.map on singleton"
-  | [%expr List.fold_left [%e? _] [%e? _] [ [%e? _] ] ] -> Some "List.fold_left on singleton"
-  | [%expr List.fold_right [%e? _] [ [%e? _] ] [%e? _] ] -> Some "List.fold_right on singleton"
-  | [%expr if [%e? _] then true else false ] -> Some "Useless if"
-  | [%expr if [%e? _] then () else [%e? _]] -> Some "Backwards if"
-  | [%expr if [%e? _] then [%e? _] else ()] -> Some "Useless else"
-  | [%expr List.hd ] -> Some "Use of partial function List.hd"
-  | [%expr List.tl ] -> Some "Use of partial function List.tl"
-  | [%expr String.sub [%e? s] 0 [%e? n] ] -> Some "Use Str.first_chars"
+  | [%expr String.concat [%e? s] [ [%e? l] ] ] -> Some (List_function_on_singleton "String.concat")
+  | [%expr List.map [%e? _] [ [%e? _] ] ] -> Some (List_function_on_singleton "List.map")
+  | [%expr List.fold_left [%e? _] [%e? _] [ [%e? _] ] ] -> Some (List_function_on_singleton "List.fold_left")
+  | [%expr List.fold_right [%e? _] [ [%e? _] ] [%e? _] ] -> Some (List_function_on_singleton "List.fold_right")
+  | [%expr if [%e? _] then true else false ] -> Some Useless_if
+  | [%expr if [%e? _] then () else [%e? _]] -> Some Backwards_if
+  | [%expr if [%e? _] then [%e? _] else ()] -> Some Useless_else
+  | [%expr List.hd ] -> Some (Partial_function "List.hd")
+  | [%expr List.tl ] -> Some (Partial_function "List.tl")
+  | [%expr String.sub [%e? s] 0 [%e? n] ] -> Some (Inlined_function "Str.first_chars")
   | [%expr String.sub [%e? s] [%e? n] (String.length [%e? s'] - [%e? n']) ]
     when expr_eq s s' && expr_eq n n'
-    -> Some "Use Str.string_after"
+    -> Some (Inlined_function "Str.string_after")
   | [%expr String.sub [%e? s] (String.length [%e? s'] - [%e? n]) [%e? n'] ]
     when expr_eq s s' && expr_eq n n'
-    -> Some "Use Str.last_chars"
-  | [%expr List.length [%e? _] > 0 ] -> Some "Use <> []"
-  | [%expr List.length [%e? _] = 0 ] -> Some "Use = []"
+    -> Some (Inlined_function "Str.last_chars")
+  | [%expr List.length [%e? _] > 0 ] -> Some (Empty_list_test "<>")
+  | [%expr List.length [%e? _] = 0 ] -> Some (Empty_list_test "=")
   | [%expr [%e? _] = true]
   | [%expr [%e? _] = false]
   | [%expr [%e? _] == true]
   | [%expr [%e? _] == false]
   | [%expr [%e? _] <> true]
-  | [%expr [%e? _] != false] -> Some "Useless comparison to boolean"
-  | [%expr [%e? { pexp_desc = Pexp_fun _} ] [%e? _]] -> Some "Use let/in"
+  | [%expr [%e? _] != false] -> Some Comparison_to_boolean
+  | [%expr [%e? { pexp_desc = Pexp_fun _} ] [%e? _]] -> Some Abstract_apply
   | { pexp_desc = Pexp_letmodule ({ txt }, _, _) } -> rate_module_name txt
-  | [%expr [%e? e1] := ![%e? e2] + 1] when expr_eq e1 e2 -> Some "Use incr"
-  | [%expr [%e? e1] := ![%e? e2] - 1] when expr_eq e1 e2 -> Some "Use decr"
+  | [%expr [%e? e1] := ![%e? e2] + 1] when expr_eq e1 e2 -> Some (Inlined_function "incr")
+  | [%expr [%e? e1] := ![%e? e2] - 1] when expr_eq e1 e2 -> Some (Inlined_function "decr")
   | [%expr if [%e? _] then [%e? e1] else [%e? e2]] when expr_eq e1 e2 ->
-      Some "Useless if"
+      Some Constant_if
   | expr when all_branches_same expr ->
-      Some "Useless match"
+      Some Constant_match
   | expr when match_on_const expr ->
-      Some "Match on constant or constructor"
+      Some Match_on_constructor
   | [%expr [%e? f] [%e? e1] [%e? e2]]
       when is_phys_eq f && (is_allocated_lit e1 || is_allocated_lit e2) ->
-      Some "Use structural comparison"
+      Some Physical_comparison_on_allocated_litteral
   | [%expr let _ = List.map [%e? _] [%e? _] in [%e? _]] ->
-      Some "Use List.iter"
-  | [%expr [ [%e? _] ] @ [%e? _]] -> Some "Use ::"
+      Some (Discarded_result ("List.map", "List.iter"))
+  | [%expr [ [%e? _] ] @ [%e? _]] -> Some (List_operation_on_litteral "::")
   | [%expr [%e? e1] @ [%e? e2]] when is_list_lit e1 && is_list_lit e2 ->
-      Some "Merge list litterals"
+      Some (List_operation_on_litteral "@")
   | [%expr let [%p? p] = [%e? _] in [%e? e]] when pat_is_exp p e ->
-      Some "Useless let"
+      Some Identity_let
   | [%expr Printf.sprintf [%e? _]] ->
-      Some "Useless sprintf"
+      Some Identity_sprintf_string
   | [%expr Printf.sprintf "%s" [%e? _]] ->
-      Some "Useless sprintf %s"
+      Some Identity_sprintf_ps
   | _ -> None
 
 let rate_module_type_name name =
+  let open Warning in
   if is_uppercase name then
     None
   else
     Some
-    ("Module type name not uppercase : " ^ name)
+      (Module_type_name_not_uppercase name)
