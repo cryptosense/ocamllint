@@ -63,8 +63,8 @@ How to use ocamllint
 First you need to install ocamllint as an ocamlfind package. `make` followed by
 `make install` will do the right thing. An OPAM package is also in the works.
 
-Then you only need to pass `-package ocamllint.ppx_lint` to your build system.
-If you are using `ocamlbuild`, adding `true: package(ocamllint.ppx_lint)` to
+Then you only need to pass `-package ocamllint.ppx` to your build system.
+If you are using `ocamlbuild`, adding `true: package(ocamllint.ppx)` to
 your `_tags` file should work.
 
 Contributing
