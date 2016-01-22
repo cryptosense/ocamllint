@@ -87,6 +87,23 @@ let is_snake_case name =
     is_lowercase word || is_uppercase word
   ) words
 
+module Lid_set = Set.Make (struct
+  type t = Longident.t
+  let compare = Pervasives.compare
+end)
+
+let partial_functions =
+  Lid_set.of_list @@ List.map Longident.parse
+    [ "List.hd"
+    ; "List.tl"
+    ]
+
+let lid_to_string lid =
+  String.concat "." @@ Longident.flatten lid
+
+let is_partial_function lid =
+  Lid_set.mem lid partial_functions
+
 let rate_module_name name =
   let open Warning in
   if is_snake_case name then
@@ -106,8 +123,9 @@ let rec rate_expression =
   | [%expr if [%e? _] then true else false ] -> Some Useless_if
   | [%expr if [%e? _] then () else [%e? _]] -> Some Backwards_if
   | [%expr if [%e? _] then [%e? _] else ()] -> Some Useless_else
-  | [%expr List.hd ] -> Some (Partial_function "List.hd")
-  | [%expr List.tl ] -> Some (Partial_function "List.tl")
+  | { pexp_desc = Pexp_ident { txt = lid } }
+    when is_partial_function lid
+    -> Some (Partial_function (lid_to_string lid))
   | [%expr String.sub [%e? s] 0 [%e? n] ] -> Some (Inlined_function "Str.first_chars")
   | [%expr String.sub [%e? s] [%e? n] (String.length [%e? s'] - [%e? n']) ]
     when expr_eq s s' && expr_eq n n'

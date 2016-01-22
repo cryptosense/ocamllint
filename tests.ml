@@ -21,6 +21,9 @@ let expr_to_string expr =
   Format.pp_print_flush fmt ();
   Buffer.contents b
 
+(** Test rate_expression. Note that the recursion is implemented by the
+    ast_mapper, so subexpressions are not checked in this test.
+*)
 let test_style =
   let warning_opt_to_string = function
     | None -> None
@@ -59,6 +62,13 @@ let test_style =
     ; [%expr let _ = List.map f xs in e ], Some "Result of List.map discarded, use List.iter instead"
     ; [%expr Printf.sprintf "hello" ], Some "Useless sprintf"
     ; [%expr Printf.sprintf "%s" "world" ], Some "Useless sprintf"
+    ; [%expr if x then true else false], Some "Useless if"
+    ; [%expr if x then () else b], Some "Backwards if"
+    ; [%expr if x then a else ()], Some "Useless else"
+    ; [%expr if x then f x y else f x y], Some "Both branches of this if are identical"
+    ; [%expr List.hd], Some "Use of partial function List.hd"
+    ; [%expr x == Some 1], Some "Use structural comparison"
+    ; [%expr let module SomeThing = M in ()], Some "Module name not in snake case: SomeThing"
     ]
 
 let suite =
