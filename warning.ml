@@ -23,7 +23,7 @@ type t =
 let to_string = function
   | List_function_on_singleton f -> Printf.sprintf "%s on singleton" f
   | Useless_if -> "Useless if"
-  | Backwards_if -> "Backward if"
+  | Backwards_if -> "Backwards if"
   | Useless_else -> "Useless else"
   | Partial_function f -> Printf.sprintf "Use of partial function %s" f
   | Inlined_function f -> Printf.sprintf "Use %s" f
@@ -34,7 +34,7 @@ let to_string = function
   | Constant_if -> "Both branches of this if are identical"
   | Constant_match -> "All branches of this match are identical"
   | Match_on_constructor -> "Match on constant or constructor"
-  | Physical_comparison_on_allocated_litteral -> "Use a structural comparison"
+  | Physical_comparison_on_allocated_litteral -> "Use structural comparison"
   | Discarded_result (used, recommended) -> Printf.sprintf "Result of %s discarded, use %s instead" used recommended
   | List_operation_on_litteral f -> Printf.sprintf "List operation on litteral: %s" f
   | Identity_let -> "Useless let binding"

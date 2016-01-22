@@ -24,6 +24,8 @@ let rec expr_eq e1 e2 =
   | Pexp_array el1, Pexp_array el2
   | Pexp_tuple el1, Pexp_tuple el2
     -> expr_list_eq el1 el2
+  | Pexp_apply (e1, el1), Pexp_apply (e2, el2) ->
+      expr_eq e1 e2 && expr_label_list_eq el1 el2
   | _ -> false
 
 and expr_option_eq eo1 eo2 = match (eo1, eo2) with
@@ -36,3 +38,11 @@ and expr_list_eq el1 el2 =
     List.for_all2 expr_eq el1 el2
   with Invalid_argument _ -> false
 
+and expr_label_list_eq el1 el2 =
+  let label_eq : string -> string -> bool = (=) in
+  let expr_label_eq (l1, e1) (l2, e2) =
+    label_eq l1 l2 && expr_eq e1 e2
+  in
+  try
+    List.for_all2 expr_label_eq el1 el2
+  with Invalid_argument _ -> false
