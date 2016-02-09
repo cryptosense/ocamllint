@@ -19,6 +19,7 @@ type t =
   | Identity_sprintf_string
   | Identity_sprintf_ps
   | Module_type_name_not_uppercase of string
+  | Sys_break_implicitly_caught
 
 let to_string = function
   | List_function_on_singleton f -> Printf.sprintf "%s on singleton" f
@@ -41,3 +42,4 @@ let to_string = function
   | Identity_sprintf_string -> "Useless sprintf"
   | Identity_sprintf_ps -> "Useless sprintf"
   | Module_type_name_not_uppercase m -> Printf.sprintf "Module type name not in uppercase: %s" m
+  | Sys_break_implicitly_caught -> "Sys.Break is implicitly caught"

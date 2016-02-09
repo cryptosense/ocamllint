@@ -62,6 +62,9 @@ let test_style =
     ; [%expr List.hd], Some "Use of partial function List.hd"
     ; [%expr x == Some 1], Some "Use structural comparison"
     ; [%expr let module SomeThing = M in ()], Some "Module name not in snake case: SomeThing"
+    ; [%expr try f x with e -> None], Some "Sys.Break is implicitly caught"
+    ; [%expr try f x with Sys.Break -> Some 1 | e -> None], None
+    ; [%expr try f x with Sys.Break as e -> raise e | e -> None], None
     ]
 
 let suite =
