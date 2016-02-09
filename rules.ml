@@ -111,6 +111,23 @@ let rate_module_name name =
   else
     Some (Module_name_not_snake_case name)
 
+let rec is_explicit_catch_of_sys_break = function
+  | [%pat? Sys.Break] -> true
+  | { ppat_desc = Ppat_alias (p, _) } -> is_explicit_catch_of_sys_break p
+  | _ -> false
+
+let is_wildcard case =
+  match case.pc_lhs.ppat_desc with
+  | Ppat_any -> true
+  | Ppat_var _ -> true
+  | _ -> false
+
+let sys_break_implicitly_caught cases =
+  let explicitly_caught =
+    List.exists (fun case -> is_explicit_catch_of_sys_break case.pc_lhs) cases
+  in
+  not explicitly_caught && List.exists is_wildcard cases
+
 let rec rate_expression =
   let open Warning in
   function
@@ -165,6 +182,9 @@ let rec rate_expression =
       Some Identity_sprintf_string
   | [%expr Printf.sprintf "%s" [%e? _]] ->
       Some Identity_sprintf_ps
+  | { pexp_desc = Pexp_try (e, cases) }
+    when sys_break_implicitly_caught cases ->
+      Some Sys_break_implicitly_caught
   | _ -> None
 
 let rate_module_type_name name =

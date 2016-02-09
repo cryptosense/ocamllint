@@ -19,5 +19,6 @@ type t =
   | Identity_sprintf_string
   | Identity_sprintf_ps
   | Module_type_name_not_uppercase of string
+  | Sys_break_implicitly_caught
 
 val to_string : t -> string

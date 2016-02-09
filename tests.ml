@@ -14,13 +14,6 @@ let test_snake_case =
     ; "someIdent", false
     ]
 
-let expr_to_string expr =
-  let b = Buffer.create 0 in
-  let fmt = Format.formatter_of_buffer b in
-  Printast.expression 0 fmt expr;
-  Format.pp_print_flush fmt ();
-  Buffer.contents b
-
 (** Test rate_expression. Note that the recursion is implemented by the
     ast_mapper, so subexpressions are not checked in this test.
 *)
@@ -31,7 +24,7 @@ let test_style =
   in
   let t (expr, r) =
     let name =
-      Printf.sprintf "Rate %s" (expr_to_string expr)
+      Printf.sprintf "Rate %s" (Pprintast.string_of_expression expr)
     in
     name >:: fun ctxt ->
       assert_equal
@@ -69,6 +62,9 @@ let test_style =
     ; [%expr List.hd], Some "Use of partial function List.hd"
     ; [%expr x == Some 1], Some "Use structural comparison"
     ; [%expr let module SomeThing = M in ()], Some "Module name not in snake case: SomeThing"
+    ; [%expr try f x with e -> None], Some "Sys.Break is implicitly caught"
+    ; [%expr try f x with Sys.Break -> Some 1 | e -> None], None
+    ; [%expr try f x with Sys.Break as e -> raise e | e -> None], None
     ]
 
 let suite =
