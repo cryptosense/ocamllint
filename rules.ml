@@ -114,6 +114,8 @@ let rate_module_name name =
 let rec is_explicit_catch_of_sys_break = function
   | [%pat? Sys.Break] -> true
   | { ppat_desc = Ppat_alias (p, _) } -> is_explicit_catch_of_sys_break p
+  | [%pat? [%p? p1] | [%p? p2]] -> is_explicit_catch_of_sys_break p1 ||
+                                   is_explicit_catch_of_sys_break p2
   | _ -> false
 
 let is_wildcard case =
