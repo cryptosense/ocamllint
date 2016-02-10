@@ -66,6 +66,7 @@ let test_style =
     ; [%expr try f x with Sys.Break -> Some 1 | e -> None], None
     ; [%expr try f x with Sys.Break as e -> raise e | e -> None], None
     ; [%expr try f x with Sys.Break | Exit -> Some 1 | e -> None], None
+    ; [%expr match () with _ when a -> ea | _ when b -> eb | _ -> something], None
     ]
 
 let suite =

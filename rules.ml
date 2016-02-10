@@ -64,6 +64,7 @@ let all_branches_same expr = match expr.pexp_desc with
   | _ -> false
 
 let match_on_const expr = match expr.pexp_desc with
+  | Pexp_match ([%expr ()], _) -> false
   | Pexp_match (e, _) ->
       begin
         match e.pexp_desc with
