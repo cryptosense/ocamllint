@@ -1,5 +1,7 @@
 <ast_tools.*>: package(compiler-libs.common)
-<ocamllint_plugin.*>: package(compiler-libs.common)
+<plugin.*>: package(compiler-libs.common), for-pack(Ocamllint)
 <ppx_lint.*>: package(compiler-libs.common), package(ppx_tools.metaquot), package(str), package(dynlink)
+<warning.*>: for-pack(Ocamllint)
+<config.*>: for-pack(Ocamllint)
 <rules.*>: package(compiler-libs.common), package(ppx_tools.metaquot), package(str)
 <tests.*>: package(oUnit), package(str), package(compiler-libs.common), package(ppx_tools.metaquot)

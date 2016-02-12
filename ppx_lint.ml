@@ -16,15 +16,15 @@ let dynlink ?(loc=Location.none) filename =
 
 let load_config filename =
   dynlink filename;
-  Ocamllint_plugin.get_config ()
+  Ocamllint.Plugin.get_config ()
 
 let report_warning ~loc warn =
-  let msg = Printf.sprintf "(ocamllint) %s\n" (Warning.to_string warn) in
+  let msg = Printf.sprintf "(ocamllint) %s\n" (Ocamllint.Warning.to_string warn) in
   let err = Location.error ~loc msg in
   Location.report_error Format.std_formatter err
 
 let warn_on config ~loc = function
-  | Some warning when Ocamllint_config.warning_active config warning ->
+  | Some warning when Ocamllint.Config.warning_active config warning ->
       report_warning ~loc warning
   | _ -> ()
 
@@ -44,7 +44,7 @@ let handle_module_type_declaration config mtd =
 
 let lint_mapper argv =
   let config = match argv with
-    | [] -> Ocamllint_config.default
+    | [] -> Ocamllint.Config.default
     | [config_module] -> load_config config_module
     | _ -> raise_errorf "Only one plugin can be loaded"
   in

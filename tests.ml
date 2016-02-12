@@ -18,10 +18,10 @@ let test_snake_case =
     ast_mapper, so subexpressions are not checked in this test.
 *)
 let test_style =
-  let open Warning in
+  let open Ocamllint.Warning in
   let warning_opt_to_string = function
     | None -> "(nothing)"
-    | Some w -> Warning.to_string w
+    | Some w -> Ocamllint.Warning.to_string w
   in
   let t (expr, r) =
     let name =

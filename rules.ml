@@ -106,7 +106,7 @@ let is_partial_function lid =
   Lid_set.mem lid partial_functions
 
 let rate_module_name name =
-  let open Warning in
+  let open Ocamllint.Warning in
   if is_snake_case name then
     None
   else
@@ -132,7 +132,7 @@ let sys_break_implicitly_caught cases =
   not explicitly_caught && List.exists is_wildcard cases
 
 let rec rate_expression =
-  let open Warning in
+  let open Ocamllint.Warning in
   function
   | [%expr [%e? e1] @@ [%e? e2]]
   | [%expr [%e? e2] |> [%e? e1]] -> rate_expression [%expr [%e e1] [%e e2]]
@@ -191,7 +191,7 @@ let rec rate_expression =
   | _ -> None
 
 let rate_module_type_name name =
-  let open Warning in
+  let open Ocamllint.Warning in
   if is_uppercase name then
     None
   else
