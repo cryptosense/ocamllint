@@ -1,4 +1,4 @@
 <ast_tools.*>: package(compiler-libs.common)
 <ppx_lint.*>: package(compiler-libs.common), package(ppx_tools.metaquot), package(str)
 <rules.*>: package(compiler-libs.common), package(ppx_tools.metaquot), package(str)
-<tests.*>: package(oUnit), package(str), package(compiler-libs.common), package(ppx_tools.metaquot), package(ppx_deriving.std)
+<tests.*>: package(oUnit), package(str), package(compiler-libs.common), package(ppx_tools.metaquot)
