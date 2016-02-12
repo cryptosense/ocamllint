@@ -1,8 +1,8 @@
 include $(shell ocamlc -where)/Makefile.config
 
 PACKAGE=ocamllint
-OBJ=ppx_lint.cma ppx_lint.cmxa ppx_lint.native
-INSTALL=META $(addprefix _build/, $(OBJ))
+OBJ=$(PACKAGE).cma $(PACKAGE).cmxa ppx_lint.cma ppx_lint.cmxa ppx_lint.native
+INSTALL=META $(addprefix _build/, $(OBJ)) config.mli plugin.mli warning.mli _build/ocamllint.cmi
 
 .PHONY: all install uninstall clean cov cov-html
 
