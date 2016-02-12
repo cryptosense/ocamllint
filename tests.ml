@@ -20,8 +20,8 @@ let test_snake_case =
 let test_style =
   let open Warning in
   let warning_opt_to_string = function
-    | None -> None
-    | Some w -> Some (Warning.to_string w)
+    | None -> "(nothing)"
+    | Some w -> Warning.to_string w
   in
   let t (expr, r) =
     let name =
@@ -30,8 +30,7 @@ let test_style =
     name >:: fun ctxt ->
       assert_equal
         ~ctxt
-        ~cmp:[%eq:Warning.t option]
-        ~printer:[%show:Warning.t option]
+        ~printer:warning_opt_to_string
         r
         (Rules.rate_expression expr)
   in
