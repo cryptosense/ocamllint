@@ -18,6 +18,7 @@ let test_snake_case =
     ast_mapper, so subexpressions are not checked in this test.
 *)
 let test_style =
+  let open Warning in
   let warning_opt_to_string = function
     | None -> None
     | Some w -> Some (Warning.to_string w)
@@ -29,40 +30,40 @@ let test_style =
     name >:: fun ctxt ->
       assert_equal
         ~ctxt
-        ~cmp:[%eq:string option]
-        ~printer:[%show:string option]
+        ~cmp:[%eq:Warning.t option]
+        ~printer:[%show:Warning.t option]
         r
-        (warning_opt_to_string (Rules.rate_expression expr))
+        (Rules.rate_expression expr)
   in
   List.map t
-    [ [%expr List.map f [2] ], Some "List.map on singleton"
-    ; [%expr List.fold_left f z [2] ], Some "List.fold_left on singleton"
-    ; [%expr List.fold_right f [2] z ], Some "List.fold_right on singleton"
-    ; [%expr String.sub s 0 i ], Some "Use Str.first_chars"
-    ; [%expr String.sub s i (String.length s - i) ], Some "Use Str.string_after"
-    ; [%expr String.sub s (String.length s - i) i ], Some "Use Str.last_chars"
-    ; [%expr List.length l > 0 ], Some "Use <> []"
-    ; [%expr List.length l = 0 ], Some "Use = []"
-    ; [%expr result = true ], Some "Comparison to boolean"
-    ; [%expr (fun x -> x + 1) 2], Some "Application of an anonymous function"
-    ; [%expr x := !x + 1], Some "Use incr"
-    ; [%expr x := !x - 1], Some "Use decr"
-    ; [%expr let x = 3 in x ], Some "Useless let binding"
-    ; [%expr [3;14] @ [15;92] ], Some "List operation on litteral: @"
-    ; [%expr [1] @ [61;80] ], Some "List operation on litteral: ::"
-    ; [%expr match None with Some _ -> 1 | None -> 2 ], Some "Match on constant or constructor"
-    ; [%expr match x with Some _ -> true | None -> true ], Some "All branches of this match are identical"
-    ; [%expr let _ = List.map f xs in e ], Some "Result of List.map discarded, use List.iter instead"
-    ; [%expr Printf.sprintf "hello" ], Some "Useless sprintf"
-    ; [%expr Printf.sprintf "%s" "world" ], Some "Useless sprintf"
-    ; [%expr if x then true else false], Some "Useless if"
-    ; [%expr if x then () else b], Some "Backwards if"
-    ; [%expr if x then a else ()], Some "Useless else"
-    ; [%expr if x then f x y else f x y], Some "Both branches of this if are identical"
-    ; [%expr List.hd], Some "Use of partial function List.hd"
-    ; [%expr x == Some 1], Some "Use structural comparison"
-    ; [%expr let module SomeThing = M in ()], Some "Module name not in snake case: SomeThing"
-    ; [%expr try f x with e -> None], Some "Sys.Break is implicitly caught"
+    [ [%expr List.map f [2] ], Some (List_function_on_singleton "List.map")
+    ; [%expr List.fold_left f z [2] ], Some (List_function_on_singleton "List.fold_left")
+    ; [%expr List.fold_right f [2] z ], Some (List_function_on_singleton "List.fold_right")
+    ; [%expr String.sub s 0 i ], Some (Inlined_function "Str.first_chars")
+    ; [%expr String.sub s i (String.length s - i) ], Some (Inlined_function "Str.string_after")
+    ; [%expr String.sub s (String.length s - i) i ], Some (Inlined_function "Str.last_chars")
+    ; [%expr List.length l > 0 ], Some (Empty_list_test "<>")
+    ; [%expr List.length l = 0 ], Some (Empty_list_test "=")
+    ; [%expr result = true ], Some Comparison_to_boolean
+    ; [%expr (fun x -> x + 1) 2], Some Abstract_apply
+    ; [%expr x := !x + 1], Some (Inlined_function "incr")
+    ; [%expr x := !x - 1], Some (Inlined_function "decr")
+    ; [%expr let x = 3 in x ], Some Identity_let
+    ; [%expr [3;14] @ [15;92] ], Some (List_operation_on_litteral "@")
+    ; [%expr [1] @ [61;80] ], Some (List_operation_on_litteral "::")
+    ; [%expr match None with Some _ -> 1 | None -> 2 ], Some Match_on_constructor
+    ; [%expr match x with Some _ -> true | None -> true ], Some Constant_match
+    ; [%expr let _ = List.map f xs in e ], Some (Discarded_result ("List.map", "List.iter"))
+    ; [%expr Printf.sprintf "hello" ], Some Identity_sprintf_string
+    ; [%expr Printf.sprintf "%s" "world" ], Some Identity_sprintf_ps
+    ; [%expr if x then true else false], Some Useless_if
+    ; [%expr if x then () else b], Some Backwards_if
+    ; [%expr if x then a else ()], Some Useless_else
+    ; [%expr if x then f x y else f x y], Some Constant_if
+    ; [%expr List.hd], Some (Partial_function "List.hd")
+    ; [%expr x == Some 1], Some Physical_comparison_on_allocated_litteral
+    ; [%expr let module SomeThing = M in ()], Some (Module_name_not_snake_case "SomeThing")
+    ; [%expr try f x with e -> None], Some Sys_break_implicitly_caught
     ; [%expr try f x with Sys.Break -> Some 1 | e -> None], None
     ; [%expr try f x with Sys.Break as e -> raise e | e -> None], None
     ; [%expr try f x with Sys.Break | Exit -> Some 1 | e -> None], None
