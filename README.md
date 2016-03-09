@@ -67,13 +67,39 @@ Then you only need to pass `-package ocamllint.ppx` to your build system.
 If you are using `ocamlbuild`, adding `true: package(ocamllint.ppx)` to
 your `_tags` file should work.
 
+How to configure ocamllint
+--------------------------
+
+Similarly to how `ocamlbuild` works, it is necessary to write a plugin to modify
+the configuration. It is a dynamically-linked file from which one has to call
+`Ocamllint.Plugin.set_config`. The `example_plugin.ml` file is, well, an
+example. This plugin disables a warning. It can be built using `make example`.
+
+When the ppx rewriter is loaded without an argument, it will use a default
+configuration:
+
+```
+% ocamlfind ppx_tools/rewriter -ppx "ocamlfind ocamllint/ppx_lint.native" -str
+'let y = []@[] in let x = 3 in x'
+File "", line 1, characters 17-31:
+(ocamllint) Useless let binding
+File "", line 1, characters 8-13:
+(ocamllint) List operation on litteral: @
+let _ = let y = [] @ [] in let x = 3 in x
+```
+
+If you pass an option to the rewriter, it will load the configuration:
+
+```
+% ocamlfind ppx_tools/rewriter -ppx "ocamlfind ocamllint/ppx_lint.native
+_build/example_plugin.cmxs" -str 'let y = []@[] in let x = 3 in x'
+File "", line 1, characters 8-13:
+(ocamllint) List operation on litteral: @
+let _ = let y = [] @ [] in let x = 3 in x
+```
+
 Contributing
 ------------
 
 New rules are welcome! Write a test in `tests.ml`, a rule in `rules.ml` and you
 should be set.
-
-There is no configuration system at the moment to enable/disable rules, nor a
-way to dynamically load custom rules tied to your own project, but these
-features are definitely on the roadmap. Please open a bug first before
-implementing this kind of feature.
