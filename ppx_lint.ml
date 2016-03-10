@@ -23,8 +23,10 @@ let report_warning ~loc warn =
   let err = Location.error ~loc msg in
   Location.report_error Format.std_formatter err
 
-let warn_on config ~loc = function
-  | Some warning when Ocamllint.Config.warning_active config warning ->
+let warn_on config ~loc wo =
+  let context = Ocamllint.Context.make ~loc () in
+  match wo with
+  | Some warning when Ocamllint.Config.warning_active config context warning ->
       report_warning ~loc warning
   | _ -> ()
 

@@ -1,11 +1,11 @@
 type t =
-  { warning_active : Warning.t -> bool
+  { warning_active : Context.t -> Warning.t -> bool
   }
 
 let on_warning warning_active c = { c with warning_active }
 
-let warning_active c = c.warning_active
+let warning_active config = config.warning_active
 
 let default =
-  { warning_active = fun _ -> true
+  { warning_active = fun _ _ -> true
   }

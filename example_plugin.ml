@@ -1,6 +1,6 @@
-let handle_warning = function
+let handle_warning ctxt = function
   | Ocamllint.Warning.Identity_let -> false
-  | w -> Ocamllint.Config.(warning_active default) w
+  | w -> Ocamllint.Config.(warning_active default ctxt) w
 
 let config =
   let open Ocamllint.Config in
