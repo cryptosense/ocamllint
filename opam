@@ -17,6 +17,5 @@ depends: [
     "ocamlfind" {>= "1.5.0"}
     "ounit" {test}
     "ppx_tools"
-    "ppx_deriving" {test}
 ]
 available: [ocaml-version >= "4.02.0"]
