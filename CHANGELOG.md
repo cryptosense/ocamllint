@@ -1,4 +1,6 @@
-## unreleased
+## v0.2.0
+
+*2016-03-10*
 
 (This release contains breaking changes, indicated by a star)
 
