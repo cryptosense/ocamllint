@@ -44,22 +44,31 @@ let handle_module_type_declaration config mtd =
   let name = mtd.pmtd_name.txt in
   warn_on config ~loc (Rules.rate_module_type_name name)
 
+let should_run () =
+  match tool_name () with
+  | "ocamlc" -> true
+  | "ocamlopt" -> true
+  | _ -> false
+
 let lint_mapper argv =
   let config = match argv with
     | [] -> Ocamllint.Config.default
     | [config_module] -> load_config config_module
     | _ -> raise_errorf "Only one plugin can be loaded"
   in
-  { default_mapper with
-    expr = (fun mapper expr ->
-      handle config expr;
-      default_mapper.expr mapper expr);
-    module_type_declaration = (fun mapper mtd ->
-      handle_module_type_declaration config mtd;
-      default_mapper.module_type_declaration mapper mtd);
-    module_binding = (fun mapper module_binding ->
-      handle_module_binding config module_binding;
-      default_mapper.module_binding mapper module_binding);
-  }
+  if should_run () then
+    { default_mapper with
+      expr = (fun mapper expr ->
+        handle config expr;
+        default_mapper.expr mapper expr);
+      module_type_declaration = (fun mapper mtd ->
+        handle_module_type_declaration config mtd;
+        default_mapper.module_type_declaration mapper mtd);
+      module_binding = (fun mapper module_binding ->
+        handle_module_binding config module_binding;
+        default_mapper.module_binding mapper module_binding);
+    }
+  else
+    default_mapper
 
 let () = register "lint" lint_mapper
