@@ -2,6 +2,8 @@
 
 - Only run when a compiler is running. Makes it possible to use directly as
   `-package ocamllint.ppx` (#12)
+- Suggest using `function` instead of `fun` + `match` (#10)
+- Support OCaml 4.03.0
 
 ## v0.2.0
 
