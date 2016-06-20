@@ -21,6 +21,7 @@ type t =
   | Module_type_name_not_uppercase of string
   | Sys_break_implicitly_caught
   | Fun_match
+  | Typo_in_doc of string
 
 let to_string = function
   | List_function_on_singleton f -> Printf.sprintf "%s on singleton" f
@@ -45,3 +46,4 @@ let to_string = function
   | Module_type_name_not_uppercase m -> Printf.sprintf "Module type name not in uppercase: %s" m
   | Sys_break_implicitly_caught -> "Sys.Break is implicitly caught"
   | Fun_match -> "Use function instead of let f x = match x with"
+  | Typo_in_doc word -> Printf.sprintf "Typo in documentation: %S" word

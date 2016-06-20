@@ -6,3 +6,4 @@
 <config.*>: for-pack(Ocamllint)
 <rules.*>: package(compiler-libs.common), package(ppx_tools.metaquot), package(str)
 <tests.*>: package(oUnit), package(str), package(compiler-libs.common), package(ppx_tools.metaquot)
+<*/compat.*>: package(compiler-libs.common)
