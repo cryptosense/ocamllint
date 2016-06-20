@@ -188,6 +188,9 @@ let rec rate_expression =
   | { pexp_desc = Pexp_try (e, cases) }
     when sys_break_implicitly_caught cases ->
       Some Sys_break_implicitly_caught
+  | { pexp_desc = Pexp_fun (_, _, px, { pexp_desc = Pexp_match(ex, _)}) }
+    when pat_is_exp px ex ->
+      Some Fun_match
   | _ -> None
 
 let rate_module_type_name name =
