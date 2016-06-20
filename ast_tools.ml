@@ -38,8 +38,15 @@ and expr_list_eq el1 el2 =
     List.for_all2 expr_eq el1 el2
   with Invalid_argument _ -> false
 
+and label_eq l1 l2 =
+  let open Ast_convenience.Label in
+  match explode l1, explode l2 with
+  | Nolabel, Nolabel -> true
+  | Labelled s1, Labelled s2
+  | Optional s1, Optional s2 -> (s1 : string) = s2
+  | _ -> false
+
 and expr_label_list_eq el1 el2 =
-  let label_eq : string -> string -> bool = (=) in
   let expr_label_eq (l1, e1) (l2, e2) =
     label_eq l1 l2 && expr_eq e1 e2
   in
