@@ -5,7 +5,13 @@ open Parsetree
 (** Allocated litterals *)
 let is_allocated_lit exp =
   match exp.pexp_desc with
-  | Pexp_constant (Const_string _)
+  | Pexp_constant c ->
+    begin
+      let open Ast_convenience.Constant in
+      match of_constant c with
+      | Pconst_string _ -> true
+      | _ -> false
+    end
   | Pexp_tuple _
   | Pexp_construct (_, Some _)
   | Pexp_variant (_, Some _)

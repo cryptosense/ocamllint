@@ -16,6 +16,6 @@ remove: [["ocamlfind" "remove" "ocamllint"]]
 depends: [
     "ocamlfind" {>= "1.5.0"}
     "ounit" {test}
-    "ppx_tools"
+    "ppx_tools" {>= "5.0"}
 ]
 available: [ocaml-version >= "4.02.0"]
