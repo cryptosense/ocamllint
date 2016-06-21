@@ -21,5 +21,6 @@ type t =
   | Module_type_name_not_uppercase of string
   | Sys_break_implicitly_caught
   | Fun_match
+  | Typo_in_doc of string
 
 val to_string : t -> string

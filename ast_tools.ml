@@ -53,3 +53,5 @@ and expr_label_list_eq el1 el2 =
   try
     List.for_all2 expr_label_eq el1 el2
   with Invalid_argument _ -> false
+
+let sigitem_attributes = Compat.sigitem_attributes

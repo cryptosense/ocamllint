@@ -44,6 +44,10 @@ let handle_module_type_declaration config mtd =
   let name = mtd.pmtd_name.txt in
   warn_on config ~loc (Rules.rate_module_type_name name)
 
+let handle_signature_item config sigitem =
+  let loc = sigitem.psig_loc in
+  warn_on config ~loc (Rules.rate_signature_item sigitem)
+
 let should_run () =
   match tool_name () with
   | "ocamlc" -> true
@@ -67,6 +71,9 @@ let lint_mapper argv =
       module_binding = (fun mapper module_binding ->
         handle_module_binding config module_binding;
         default_mapper.module_binding mapper module_binding);
+      signature_item = (fun mapper signature_item ->
+        handle_signature_item config signature_item;
+        default_mapper.signature_item mapper signature_item);
     }
   else
     default_mapper

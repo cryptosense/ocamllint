@@ -14,15 +14,15 @@ let test_snake_case =
     ; "someIdent", false
     ]
 
+let warning_opt_to_string = function
+  | None -> "(nothing)"
+  | Some w -> Ocamllint.Warning.to_string w
+
 (** Test rate_expression. Note that the recursion is implemented by the
     ast_mapper, so subexpressions are not checked in this test.
 *)
-let test_style =
+let test_expression =
   let open Ocamllint.Warning in
-  let warning_opt_to_string = function
-    | None -> "(nothing)"
-    | Some w -> Ocamllint.Warning.to_string w
-  in
   let t (expr, r) =
     let name =
       Printf.sprintf "Rate %s" (Pprintast.string_of_expression expr)
@@ -70,10 +70,49 @@ let test_style =
     ; [%expr fun x -> match x with 1 -> true | _ -> false], Some Fun_match
     ]
 
+let string_of_signature_item x =
+  let open Format in
+  ignore (flush_str_formatter ()) ;
+  let f = str_formatter in
+  Pprintast.default#signature_item f x;
+  flush_str_formatter ()
+
+(**
+   Test rate_signature_item.
+   Same recursion caveat as in test_expression applies.
+*)
+let test_signature_item =
+  let t (sigitem, r) =
+    let name =
+      Printf.sprintf "Rate %s" (string_of_signature_item sigitem)
+    in
+    name >:: fun ctxt ->
+      assert_equal
+        ~ctxt
+        ~printer:warning_opt_to_string
+        r
+        (Rules.rate_signature_item sigitem)
+  in
+  let open Ast_helper in
+  let open Location in
+  let open Parsetree in
+  List.map t
+    [ Sig.value @@ Val.mk
+        ~attrs:
+            [ mknoloc "ocaml.doc"
+            , PStr [%str "a string to descibe the function"]
+            ]
+        (mknoloc "f")
+        [%type: int]
+      , Some (Ocamllint.Warning.Typo_in_doc "descibe")
+    ]
+
+
 let suite =
   "Tests" >:::
   [ "Snake case" >::: test_snake_case
-  ; "Style" >::: test_style
+  ; "Expression" >::: test_expression
+  ; "Signature item" >::: test_signature_item
   ]
 
 let _ =

@@ -4,6 +4,7 @@
   `-package ocamllint.ppx` (#12)
 - Suggest using `function` instead of `fun` + `match` (#10)
 - Support OCaml 4.03.0
+- Detect typos in documentation (requires OCaml 4.03)
 
 ## v0.2.0
 

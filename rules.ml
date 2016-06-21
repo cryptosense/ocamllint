@@ -5,12 +5,11 @@ open Parsetree
 (** Allocated litterals *)
 let is_allocated_lit exp =
   match exp.pexp_desc with
-  | Pexp_constant c ->
+  | Pexp_constant _ ->
     begin
-      let open Ast_convenience.Constant in
-      match of_constant c with
-      | Pconst_string _ -> true
-      | _ -> false
+      match Ast_convenience.get_str exp with
+      | Some _ -> true
+      | None -> false
     end
   | Pexp_tuple _
   | Pexp_construct (_, Some _)
@@ -206,3 +205,43 @@ let rate_module_type_name name =
   else
     Some
       (Module_type_name_not_uppercase name)
+
+let rec first_matching p = function
+  | [] -> None
+  | x::xs ->
+    begin
+      match p x with
+      | Some y -> Some y
+      | None -> first_matching p xs
+    end
+
+let filter_rev_map : type a b . (a -> b option) -> a list -> b list
+  = fun f ->
+  let rec go acc = function
+    | [] -> acc
+    | x::xs ->
+      begin
+        match f x with
+        | Some y -> go (y::acc) xs
+        | None -> go acc xs
+      end
+  in
+  go []
+
+let extract_ocaml_doc attributes =
+  let open Ast_convenience in
+  match find_attr_expr "ocaml.doc" attributes with
+  | Some e -> get_str e
+  | None -> None
+
+let sigitem_docs sigitem =
+  let attrs = sigitem_attributes sigitem in
+  filter_rev_map extract_ocaml_doc attrs
+
+let rate_signature_item sigitem =
+  let docs = sigitem_docs sigitem in
+    begin
+      match first_matching Typo.find docs with
+      | Some w -> Some (Ocamllint.Warning.Typo_in_doc w)
+      | None -> None
+    end
