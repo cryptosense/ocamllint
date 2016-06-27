@@ -1,4 +1,4 @@
-version = "0.3.0"
+version = "0.3.0+dev"
 description = "Linter for OCaml"
 archive(byte) = "ocamllint.cma"
 archive(native) = "ocamllint.cmxa"
