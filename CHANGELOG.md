@@ -1,4 +1,6 @@
-## unreleased
+## v0.3.0
+
+*2016-06-27*
 
 - Only run when a compiler is running. Makes it possible to use directly as
   `-package ocamllint.ppx` (#12)
