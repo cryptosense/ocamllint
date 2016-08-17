@@ -74,7 +74,7 @@ let string_of_signature_item x =
   let open Format in
   ignore (flush_str_formatter ()) ;
   let f = str_formatter in
-  Pprintast.default#signature_item f x;
+  Pprintast.signature f [x];
   flush_str_formatter ()
 
 (**
