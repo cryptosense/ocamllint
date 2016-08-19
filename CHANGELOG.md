@@ -1,5 +1,7 @@
 ## unreleased
 
+- Support OCaml 4.04.0+beta1 (#17, #18, thanks Damien Doligez!)
+
 ## v0.3.0
 
 *2016-06-27*
