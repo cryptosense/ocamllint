@@ -6,7 +6,7 @@ let test_snake_case =
       Printf.sprintf "is_snake_case %S?" s
     in
     name >:: fun ctxt ->
-      assert_equal r (Rules.is_snake_case s)
+      assert_equal r (Ocamllint_rules.is_snake_case s)
   in
   List.map t
     [ "ident", true
@@ -32,7 +32,7 @@ let test_expression =
         ~ctxt
         ~printer:warning_opt_to_string
         r
-        (Rules.rate_expression expr)
+        (Ocamllint_rules.rate_expression expr)
   in
   List.map t
     [ [%expr List.map f [2] ], Some (List_function_on_singleton "List.map")
@@ -91,7 +91,7 @@ let test_signature_item =
         ~ctxt
         ~printer:warning_opt_to_string
         r
-        (Rules.rate_signature_item sigitem)
+        (Ocamllint_rules.rate_signature_item sigitem)
   in
   let open Ast_helper in
   let open Location in

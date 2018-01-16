@@ -1,4 +1,3 @@
-version = "0.3.0+dev"
 description = "Linter for OCaml"
 archive(byte) = "ocamllint.cma"
 archive(native) = "ocamllint.cmxa"
@@ -7,5 +6,5 @@ requires = "compiler-libs.common,ppx_tools.metaquot"
 package "ppx" (
     description = "Run ocamllint through a ppx"
     requires = "ocamllint"
-    ppx = "./ppx_lint.native"
+    ppx = "./ppx_lint"
 )

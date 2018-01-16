@@ -1,5 +1,5 @@
 type t =
-  { warning_active : Context.t -> Warning.t -> bool
+  { warning_active : Ocamllint_context.t -> Ocamllint_warning.t -> bool
   }
 
 let on_warning warning_active c = { c with warning_active }
