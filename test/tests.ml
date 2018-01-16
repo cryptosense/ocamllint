@@ -18,6 +18,12 @@ let warning_opt_to_string = function
   | None -> "(nothing)"
   | Some w -> Ocamllint.Warning.to_string w
 
+let string_of_expression expr =
+  let open Migrate_parsetree.Versions in
+  let migration = migrate ocaml_404 ocaml_current in
+  let current_expr = migration.copy_expression expr in
+  Pprintast.string_of_expression current_expr
+
 (** Test rate_expression. Note that the recursion is implemented by the
     ast_mapper, so subexpressions are not checked in this test.
 *)
@@ -25,7 +31,7 @@ let test_expression =
   let open Ocamllint.Warning in
   let t (expr, r) =
     let name =
-      Printf.sprintf "Rate %s" (Pprintast.string_of_expression expr)
+      Printf.sprintf "Rate %s" (string_of_expression expr)
     in
     name >:: fun ctxt ->
       assert_equal
@@ -71,10 +77,13 @@ let test_expression =
     ]
 
 let string_of_signature_item x =
+  let open Migrate_parsetree.Versions in
   let open Format in
+  let migration = migrate ocaml_404 ocaml_current in
+  let current_sig = migration.copy_signature [x] in
   ignore (flush_str_formatter ()) ;
   let f = str_formatter in
-  Pprintast.signature f [x];
+  Pprintast.signature f current_sig;
   flush_str_formatter ()
 
 (**
@@ -93,9 +102,9 @@ let test_signature_item =
         r
         (Ocamllint_rules.rate_signature_item sigitem)
   in
-  let open Ast_helper in
-  let open Location in
-  let open Parsetree in
+  let open Migrate_parsetree.Ast_404.Ast_helper in
+  let open Migrate_parsetree.Ast_404.Location in
+  let open Migrate_parsetree.Ast_404.Parsetree in
   List.map t
     [ Sig.value @@ Val.mk
         ~attrs:

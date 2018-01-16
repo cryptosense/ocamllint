@@ -73,13 +73,13 @@ How to configure ocamllint
 Similarly to how `ocamlbuild` works, it is necessary to write a plugin to modify
 the configuration. It is a dynamically-linked file from which one has to call
 `Ocamllint.Plugin.set_config`. The `example_plugin.ml` file is, well, an
-example. This plugin disables a warning. It can be built using `make example`.
+example. This plugin disables a warning.
 
 When the ppx rewriter is loaded without an argument, it will use a default
 configuration:
 
 ```
-% ocamlfind ppx_tools/rewriter -ppx "ocamlfind ocamllint/ppx_lint.native" -str
+% ocamlfind ppx_tools/rewriter -ppx "ocamlfind ocamllint/ppx_lint --as-ppx" -str
 'let y = []@[] in let x = 3 in x'
 File "", line 1, characters 17-31:
 (ocamllint) Useless let binding
@@ -91,8 +91,8 @@ let _ = let y = [] @ [] in let x = 3 in x
 If you pass an option to the rewriter, it will load the configuration:
 
 ```
-% ocamlfind ppx_tools/rewriter -ppx "ocamlfind ocamllint/ppx_lint.native
-_build/example_plugin.cmxs" -str 'let y = []@[] in let x = 3 in x'
+% ocamlfind ppx_tools/rewriter -ppx "ocamlfind ocamllint/ppx_lint --as-ppx
+--plugin _build/example_plugin.cmxs" -str 'let y = []@[] in let x = 3 in x'
 File "", line 1, characters 8-13:
 (ocamllint) List operation on litteral: @
 let _ = let y = [] @ [] in let x = 3 in x
