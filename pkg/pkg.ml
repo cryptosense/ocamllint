@@ -5,7 +5,7 @@ open Topkg
 let () =
   Pkg.describe "ocamllint" @@ fun c ->
   Ok
-    [ Pkg.mllib "ocamllint.mllib"
-    ; Pkg.libexec "ppx_lint"
-    ; Pkg.test "tests"
+    [ Pkg.mllib "lib/ocamllint.mllib"
+    ; Pkg.libexec "ppx/ppx_lint"
+    ; Pkg.test "test/tests"
     ]
