@@ -6,15 +6,21 @@ bug-reports: "https://github.com/cryptosense/ocamllint/issues"
 license: "BSD-2"
 dev-repo: "https://github.com/cryptosense/ocamllint.git"
 build: [
-    [make "all"]
+  [ "ocaml" "pkg/pkg.ml" "build"
+    "--pinned" "%{pinned}%"
+  ]
 ]
-install: [
-    [make "install"]
+build-test: [
+  [ "ocaml" "pkg/pkg.ml" "build"
+    "--pinned" "%{pinned}%"
+    "--tests" "true"
+  ]
+  [ "ocaml" "pkg/pkg.ml" "test" ]
 ]
-build-test: [make "check"]
-remove: [["ocamlfind" "remove" "ocamllint"]]
 depends: [
-    "ocamlfind" {>= "1.5.0"}
+    "ocamlfind" {build & >= "1.5.0"}
+    "ocamlbuild" {build}
+    "topkg" {build}
     "ounit" {test}
     "ppx_tools" {>= "5.0"}
 ]

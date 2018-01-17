@@ -32,21 +32,21 @@ let warn_on config ~loc wo =
 
 let handle config expr =
   let loc = expr.pexp_loc in
-  warn_on config ~loc (Rules.rate_expression expr)
+  warn_on config ~loc (Ocamllint_rules.rate_expression expr)
 
 let handle_module_binding config mb =
   let loc = mb.pmb_loc in
   let name = mb.pmb_name.txt in
-  warn_on config ~loc (Rules.rate_module_name name)
+  warn_on config ~loc (Ocamllint_rules.rate_module_name name)
 
 let handle_module_type_declaration config mtd =
   let loc = mtd.pmtd_loc in
   let name = mtd.pmtd_name.txt in
-  warn_on config ~loc (Rules.rate_module_type_name name)
+  warn_on config ~loc (Ocamllint_rules.rate_module_type_name name)
 
 let handle_signature_item config sigitem =
   let loc = sigitem.psig_loc in
-  warn_on config ~loc (Rules.rate_signature_item sigitem)
+  warn_on config ~loc (Ocamllint_rules.rate_signature_item sigitem)
 
 let should_run () =
   match tool_name () with
