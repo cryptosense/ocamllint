@@ -1,4 +1,11 @@
-[![Build Status](https://travis-ci.org/cryptosense/ocamllint.svg)](https://travis-ci.org/cryptosense/ocamllint)
+# Important
+
+We're archiving `ocamllint` as it's not used at Cryptosense anymore and we believe
+there are better and more flexible lint tools available than a standalone binary.
+
+If you think otherwise and are interested in maintaining it, please don't hesitate to
+contact us at github@cryptosense.com.
+
 
 Ocamllint - detect common errors in OCaml code
 ==============================================
