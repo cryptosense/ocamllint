@@ -1,13 +1,13 @@
 open Ast_tools
-open Asttypes
-open Parsetree
+open Migrate_parsetree.Ast_404.Asttypes
+open Migrate_parsetree.Ast_404.Parsetree
 
 (** Allocated litterals *)
 let is_allocated_lit exp =
   match exp.pexp_desc with
   | Pexp_constant _ ->
     begin
-      match Ast_convenience.get_str exp with
+      match Ppx_tools_404.Ast_convenience.get_str exp with
       | Some _ -> true
       | None -> false
     end
@@ -229,7 +229,7 @@ let filter_rev_map : type a b . (a -> b option) -> a list -> b list
   go []
 
 let extract_ocaml_doc attributes =
-  let open Ast_convenience in
+  let open Ppx_tools_404.Ast_convenience in
   match find_attr_expr "ocaml.doc" attributes with
   | Some e -> get_str e
   | None -> None

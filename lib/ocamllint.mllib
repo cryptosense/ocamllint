@@ -1,1 +1,5 @@
 Ocamllint
+Ocamllint_config
+Ocamllint_context
+Ocamllint_plugin
+Ocamllint_warning

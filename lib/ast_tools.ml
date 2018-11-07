@@ -1,5 +1,5 @@
-open Asttypes
-open Parsetree
+open Migrate_parsetree.Ast_404.Asttypes
+open Migrate_parsetree.Ast_404.Parsetree
 
 let rec li_eq li1 li2 =
   let open Longident in
@@ -39,7 +39,7 @@ and expr_list_eq el1 el2 =
   with Invalid_argument _ -> false
 
 and label_eq l1 l2 =
-  let open Ast_convenience.Label in
+  let open Ppx_tools_404.Ast_convenience.Label in
   match explode l1, explode l2 with
   | Nolabel, Nolabel -> true
   | Labelled s1, Labelled s2
@@ -54,4 +54,18 @@ and expr_label_list_eq el1 el2 =
     List.for_all2 expr_label_eq el1 el2
   with Invalid_argument _ -> false
 
-let sigitem_attributes = Compat.sigitem_attributes
+let sigitem_attributes { psig_desc } =
+  match psig_desc with
+  | Psig_value vd -> [vd.pval_attributes]
+  | Psig_type (_, tdecls) -> List.map (fun tdecl -> tdecl.ptype_attributes) tdecls
+  | Psig_typext text -> [text.ptyext_attributes]
+  | Psig_exception exc -> [exc.pext_attributes]
+  | Psig_module md -> [md.pmd_attributes]
+  | Psig_recmodule mds -> List.map (fun md -> md.pmd_attributes) mds
+  | Psig_modtype pmtd -> [pmtd.pmtd_attributes]
+  | Psig_open popen -> [popen.popen_attributes]
+  | Psig_include pincl -> [pincl.pincl_attributes]
+  | Psig_class pcis
+  | Psig_class_type pcis -> List.map (fun pct -> pct.pci_attributes) pcis
+  | Psig_attribute attribute -> [[attribute]]
+  | Psig_extension (_, attributes) -> [attributes]

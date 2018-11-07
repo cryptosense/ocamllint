@@ -22,6 +22,6 @@ depends: [
     "ocamlbuild" {build}
     "topkg" {build}
     "ounit" {test}
-    "ppx_tools" {>= "5.0"}
+    "ppx_tools_versioned" {>= "5.0"}
 ]
 available: [ocaml-version >= "4.02.0"]

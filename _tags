@@ -1,5 +1,7 @@
-true: package(compiler-libs.common)
-true: package(ppx_tools.metaquot)
+true: bin_annot
+true: package(ocaml-migrate-parsetree)
+true: package(ppx_tools_versioned.metaquot_404)
+true: package(ppx_tools_versioned)
 true: package(str)
 "lib": include
 <ppx/*>: package(dynlink)

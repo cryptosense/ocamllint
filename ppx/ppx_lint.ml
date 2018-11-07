@@ -1,6 +1,29 @@
-open Ast_mapper
-open Asttypes
-open Parsetree
+open Migrate_parsetree.Ast_404.Ast_mapper
+open Migrate_parsetree.Ast_404.Asttypes
+open Migrate_parsetree.Ast_404.Parsetree
+
+module Config : sig
+  val reset_args : unit -> unit
+
+  val args : (Arg.key * Arg.spec * Arg.doc) list
+
+  val plugin : unit -> string option
+end = struct
+  let plugin_ref = ref None
+
+  let set_plugin s =
+    plugin_ref := Some s
+
+  let plugin () =
+    !plugin_ref
+
+  let reset_args () =
+    plugin_ref := None
+
+  let args =
+    [ ("--plugin", Arg.String set_plugin, "Load plugin")
+    ]
+end
 
 let raise_errorf ?sub ?if_highlight ?loc message =
   message |> Printf.kprintf (fun str ->
@@ -12,8 +35,7 @@ let dynlink ?(loc=Location.none) filename =
   try
     Dynlink.loadfile filename
   with Dynlink.Error error ->
-    raise_errorf ~loc "Cannot load %s: %s" filename (Dynlink.error_message error)
-
+    raise_errorf ~loc "Cannot load %s: %s" filename (Dynlink.error_message error) 
 let load_config filename =
   dynlink filename;
   Ocamllint.Plugin.get_config ()
@@ -48,19 +70,18 @@ let handle_signature_item config sigitem =
   let loc = sigitem.psig_loc in
   warn_on config ~loc (Ocamllint_rules.rate_signature_item sigitem)
 
-let should_run () =
-  match tool_name () with
+let should_run {Migrate_parsetree.Driver.tool_name} =
+  match tool_name with
   | "ocamlc" -> true
   | "ocamlopt" -> true
   | _ -> false
 
-let lint_mapper argv =
-  let config = match argv with
-    | [] -> Ocamllint.Config.default
-    | [config_module] -> load_config config_module
-    | _ -> raise_errorf "Only one plugin can be loaded"
+let lint_mapper driver_config _ =
+  let config = match Config.plugin () with
+    | None -> Ocamllint.Config.default
+    | Some config_module -> load_config config_module
   in
-  if should_run () then
+  if should_run driver_config then
     { default_mapper with
       expr = (fun mapper expr ->
         handle config expr;
@@ -78,4 +99,13 @@ let lint_mapper argv =
   else
     default_mapper
 
-let () = register "lint" lint_mapper
+let main () =
+  Migrate_parsetree.Driver.register
+    ~name:"lint"
+    ~reset_args:Config.reset_args
+    ~args:Config.args
+    Migrate_parsetree.Versions.ocaml_404
+    lint_mapper;
+  Migrate_parsetree.Driver.run_main ()
+
+let () = main ()

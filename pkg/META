@@ -6,5 +6,5 @@ requires = "compiler-libs.common,ppx_tools.metaquot"
 package "ppx" (
     description = "Run ocamllint through a ppx"
     requires = "ocamllint"
-    ppx = "./ppx_lint"
+    ppx = "./ppx_lint --as-ppx"
 )
